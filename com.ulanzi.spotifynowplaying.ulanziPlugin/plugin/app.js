@@ -10,6 +10,7 @@ import * as auth from './spotify/auth.js';
 import * as nowPlaying from './actions/nowPlayingRegistry.js';
 import * as controls from './actions/controls.js';
 import * as volumeDial from './actions/volumeDial.js';
+import * as likeTrack from './actions/likeTrack.js';
 
 const PLUGIN_UUID = 'com.ulanzi.ulanzistudio.spotifynowplaying';
 const MOSAIC = 'com.ulanzi.ulanzistudio.spotifynowplaying.mosaic';
@@ -32,6 +33,7 @@ function setupOnce() {
   nowPlaying.init($UD);
   controls.init($UD);
   volumeDial.init($UD);
+  likeTrack.init($UD);
 
   // Resultado do fluxo de login → avisa qualquer Property Inspector aberto.
   auth.onResult({
@@ -60,6 +62,7 @@ $UD.onAdd((msg) => {
   const { context, actionType, param } = normalize(msg);
   nowPlaying.add(context, actionType, param);
   controls.add(context, actionType);
+  likeTrack.add(context, actionType);
 });
 
 // setactive: a página/perfil ficou visível novamente — redesenha now playing.
@@ -67,6 +70,7 @@ $UD.onSetActive((msg) => {
   const { context, actionType, param } = normalize(msg);
   nowPlaying.add(context, actionType, param);
   controls.add(context, actionType);
+  likeTrack.add(context, actionType);
 });
 
 // Configuração alterada no Property Inspector (ex.: quadrante do mosaico).
@@ -83,6 +87,7 @@ $UD.onClear((msg) => {
     nowPlaying.remove(context);
     volumeDial.remove(context);
     controls.remove(context);
+    likeTrack.remove(context);
   }
 });
 
@@ -92,6 +97,7 @@ function onTrigger(msg) {
   const { context, actionType } = normalize(msg);
   if (controls.handles(actionType)) controls.run(context, actionType);
   else if (volumeDial.handlesKey(actionType)) volumeDial.runKey(context, actionType);
+  else if (likeTrack.handles(actionType)) likeTrack.run(context);
 }
 // Apenas `run` — cada toque emite `run` E `keyup`; ouvir os dois dobraria o
 // comando (pulava 2 faixas em next/prev).

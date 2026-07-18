@@ -236,3 +236,30 @@ export async function setVolume(percent) {
   const v = Math.max(0, Math.min(100, Math.round(percent)));
   await request(`/me/player/volume?volume_percent=${v}`, { method: 'PUT' });
 }
+
+// ---- Biblioteca (curtir faixas) ----------------------------------------------
+// API nova (fev/2026): endpoints genéricos /me/library com Spotify URIs.
+// Requer os escopos user-library-read (contains) e user-library-modify (save/remove).
+
+const trackUri = (trackId) => `spotify:track:${trackId}`;
+
+/** true se a faixa está salva (curtida) na biblioteca do usuário. */
+export async function isTrackSaved(trackId) {
+  if (!trackId) return false;
+  const uris = encodeURIComponent(trackUri(trackId));
+  const data = await request(`/me/library/contains?uris=${uris}`);
+  // A resposta é um array de booleanos, alinhado com as URIs enviadas.
+  return Array.isArray(data) ? Boolean(data[0]) : false;
+}
+
+/** Salva (curte) a faixa. `uris` vai na query, como no /contains. */
+export async function saveTrack(trackId) {
+  const uris = encodeURIComponent(trackUri(trackId));
+  await request(`/me/library?uris=${uris}`, { method: 'PUT' });
+}
+
+/** Remove (descurte) a faixa. */
+export async function removeTrack(trackId) {
+  const uris = encodeURIComponent(trackUri(trackId));
+  await request(`/me/library?uris=${uris}`, { method: 'DELETE' });
+}
