@@ -2,7 +2,7 @@
 // Todas exigem conta Premium e um dispositivo Spotify ativo.
 
 import * as api from '../spotify/api.js';
-import { NoActiveDeviceError, RestrictionError } from '../spotify/api.js';
+import { NoActiveDeviceError, RestrictionError, RateLimitError } from '../spotify/api.js';
 import * as tokenStore from '../spotify/tokenStore.js';
 import * as poller from './nowPlayingRegistry.js';
 
@@ -95,6 +95,11 @@ export async function run(context, actionid) {
     if (e instanceof RestrictionError) {
       // Comando recusado no contexto atual (ex.: "anterior" no início da faixa).
       // Não é falha de configuração — não mostramos ícone de erro.
+      return;
+    }
+    if (e instanceof RateLimitError) {
+      // Em cooldown do Spotify: avisa de leve, sem ícone de erro na tecla.
+      $UD.toast('Spotify ocupado, tente em instantes.');
       return;
     }
     if (e instanceof NoActiveDeviceError) {

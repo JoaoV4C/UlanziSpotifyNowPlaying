@@ -3,11 +3,11 @@
 // instância ativa. As teclas de controle (play/pause etc.) não passam por aqui.
 
 import * as api from '../spotify/api.js';
-import { NoActiveDeviceError } from '../spotify/api.js';
+import { NoActiveDeviceError, RateLimitError } from '../spotify/api.js';
 import * as cover from '../render/cover.js';
 import * as tokenStore from '../spotify/tokenStore.js';
 
-const POLL_MS = 4000;
+const POLL_MS = 5000;
 
 const NOW_PLAYING = 'com.ulanzi.ulanzistudio.spotifynowplaying.nowPlaying';
 const MOSAIC = 'com.ulanzi.ulanzistudio.spotifynowplaying.mosaic';
@@ -107,6 +107,11 @@ async function tick() {
   try {
     state = await api.getPlaybackState();
   } catch (e) {
+    if (e instanceof RateLimitError) {
+      // Em cooldown do Spotify: não mexe no que está na tela nem insiste.
+      // O próprio api bloqueia novas chamadas até o Retry-After expirar.
+      return;
+    }
     if (e instanceof NoActiveDeviceError) {
       pushTextToAll('Sem\ndispositivo');
     } else {
