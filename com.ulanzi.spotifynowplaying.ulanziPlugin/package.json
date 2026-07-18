@@ -1,0 +1,25 @@
+{
+  "name": "ulanzi-spotify-now-playing",
+  "version": "0.1.0",
+  "description": "Plugin Ulanzi Stream Deck para exibir e controlar o Spotify Now Playing.",
+  "type": "module",
+  "main": "plugin/app.js",
+  "scripts": {
+    "start": "node plugin/app.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "ulanzi",
+    "stream deck",
+    "spotify",
+    "now playing"
+  ],
+  "author": "JoaoV4C",
+  "license": "MIT",
+  "dependencies": {
+    "sharp": "^0.33.5",
+    "ws": "^8.18.0"
+  }
+}
