@@ -16,9 +16,18 @@ const MOSAIC = 'com.ulanzi.ulanzistudio.spotifynowplaying.mosaic';
 
 const $UD = new UlanziApi();
 
-$UD.connect(PLUGIN_UUID);
+// Estado da (re)conexão ao bridge do Studio.
+let reconnectDelay = 1000; // ms; resetado para 1s a cada conexão bem-sucedida
+const MAX_RECONNECT_DELAY = 30000;
+let shuttingDown = false;
+let reconnectTimer = null;
 
-$UD.onConnected(() => {
+// Inicializa os módulos uma única vez (mesmo que o socket reconecte depois).
+let initialized = false;
+function setupOnce() {
+  if (initialized) return;
+  initialized = true;
+
   tokenStore.init($UD);
   nowPlaying.init($UD);
   controls.init($UD);
@@ -29,7 +38,21 @@ $UD.onConnected(() => {
     onSuccess: () => broadcastAuthStatus(),
     onError: (msg) => broadcastAuthStatus(msg),
   });
+}
+
+$UD.onConnected(() => {
+  reconnectDelay = 1000; // conexão OK: zera o backoff
+  setupOnce();
 });
+
+// Sem este handler, o emit('error') do SDK (EventEmitter) derruba o processo com
+// ERR_UNHANDLED_ERROR quando o bridge do Studio oscila. Aqui apenas registramos;
+// a reconexão é tratada em onClose.
+$UD.onError((err) => {
+  console.error('[spotify-now-playing] WS error:', typeof err === 'string' ? err : JSON.stringify(err));
+});
+
+$UD.connect(PLUGIN_UUID);
 
 // ---- Ciclo de vida das teclas -------------------------------------------------
 
@@ -168,9 +191,28 @@ function normalize(msg) {
   };
 }
 
-// Encerramento limpo.
+// Reconexão: quando o bridge do Studio cai (reinício/oscilação), tenta reconectar
+// com backoff exponencial em vez de encerrar o processo. Assim o plugin sobrevive
+// a reinícios do Studio e o botão "Conectar" volta a responder sem precisar
+// relançar o main service.
 $UD.onClose(() => {
-  process.exit(0);
+  if (shuttingDown) return;
+  if (reconnectTimer) return; // já há uma tentativa agendada
+  reconnectTimer = setTimeout(() => {
+    reconnectTimer = null;
+    try {
+      $UD.connect(PLUGIN_UUID);
+    } catch (e) {
+      console.error('[spotify-now-playing] reconnect failed:', e?.message);
+    }
+  }, reconnectDelay);
+  reconnectDelay = Math.min(reconnectDelay * 2, MAX_RECONNECT_DELAY);
 });
-process.on('SIGINT', () => process.exit(0));
-process.on('SIGTERM', () => process.exit(0));
+
+function shutdown() {
+  shuttingDown = true;
+  if (reconnectTimer) clearTimeout(reconnectTimer);
+  process.exit(0);
+}
+process.on('SIGINT', shutdown);
+process.on('SIGTERM', shutdown);
