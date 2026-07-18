@@ -15,6 +15,18 @@ export class NoActiveDeviceError extends Error {
   }
 }
 
+/**
+ * O Spotify recusou o comando no contexto atual (403 "Restriction violated").
+ * Ex.: mandar "previous" no início da faixa, "next" sem próxima, ou play/pause
+ * redundante. Não é um erro de configuração — o chamador pode ignorar de leve.
+ */
+export class RestrictionError extends Error {
+  constructor(message) {
+    super(message || 'Comando não permitido agora.');
+    this.name = 'RestrictionError';
+  }
+}
+
 async function validToken() {
   if (tokenStore.hasValidAccessToken()) {
     return tokenStore.getAccessToken();
@@ -47,16 +59,39 @@ async function request(path, opts = {}, retry = true) {
     // Nos endpoints de player, 404 significa "sem dispositivo ativo".
     throw new NoActiveDeviceError();
   }
+  if (resp.status === 403) {
+    // "Restriction violated": comando não permitido no contexto atual.
+    const msg = await readError(resp);
+    throw new RestrictionError(msg);
+  }
   if (resp.status === 204) {
     return null; // sem conteúdo (ex.: nada tocando)
   }
   if (!resp.ok) {
-    const txt = await resp.text().catch(() => '');
-    throw new Error(`Spotify API ${resp.status}: ${txt.slice(0, 200)}`);
+    throw new Error(`Spotify API ${resp.status}: ${await readError(resp)}`);
   }
-  // Alguns endpoints (play/pause/next) respondem 200/202 sem corpo JSON.
+  // Só interpreta como JSON se o corpo realmente for JSON. Os endpoints de
+  // controle (play/pause/next/previous/volume) respondem 200/202 sem JSON.
+  const ct = resp.headers.get('content-type') || '';
+  if (!ct.includes('application/json')) return null;
   const text = await resp.text();
-  return text ? JSON.parse(text) : null;
+  if (!text) return null;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+}
+
+// Extrai a mensagem de erro do Spotify (JSON { error: { message } }) ou texto cru.
+async function readError(resp) {
+  const txt = await resp.text().catch(() => '');
+  try {
+    const j = JSON.parse(txt);
+    return j?.error?.message || txt.slice(0, 200);
+  } catch {
+    return txt.slice(0, 200);
+  }
 }
 
 /**

@@ -6,7 +6,7 @@
 // usuário gira e enviamos apenas a última posição após uma breve pausa.
 
 import * as api from '../spotify/api.js';
-import { NoActiveDeviceError } from '../spotify/api.js';
+import { NoActiveDeviceError, RestrictionError } from '../spotify/api.js';
 import * as tokenStore from '../spotify/tokenStore.js';
 
 const VOLUME_DIAL = 'com.ulanzi.ulanzistudio.spotifynowplaying.volumeDial';
@@ -102,6 +102,11 @@ function ensureConnected(context) {
 }
 
 function reportError(context, e) {
+  if (e instanceof RestrictionError) {
+    // Dispositivo não permite ajuste de volume via API (ex.: alguns dispositivos
+    // Connect). Ignora silenciosamente para não poluir a tecla com erro.
+    return;
+  }
   if (e instanceof NoActiveDeviceError) {
     $UD.toast('Nenhum dispositivo Spotify ativo.');
   } else {
