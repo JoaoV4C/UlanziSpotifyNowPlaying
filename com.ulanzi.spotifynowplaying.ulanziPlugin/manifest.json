@@ -1,0 +1,95 @@
+{
+  "Version": "0.1.0",
+  "Author": "JoaoV4C",
+  "Name": "Spotify Now Playing",
+  "Description": "Exibe a faixa atual do Spotify (capa + título) e controla o playback direto do Ulanzi Deck.",
+  "Icon": "assets/icons/pluginIcon.png",
+  "Category": "Spotify Now Playing",
+  "CategoryIcon": "assets/icons/category.png",
+  "CodePath": "plugin/app.js",
+  "Type": "JavaScript",
+  "PrivateAPI": false,
+  "SupportedInMultiActions": false,
+  "UUID": "com.ulanzi.ulanzistudio.spotifynowplaying",
+  "Actions": [
+    {
+      "Name": "Now Playing",
+      "Icon": "assets/icons/nowPlaying.png",
+      "PropertyInspectorPath": "property-inspector/nowPlaying/inspector.html",
+      "Tooltip": "Mostra a capa e o título da faixa atual.",
+      "UUID": "com.ulanzi.ulanzistudio.spotifynowplaying.nowPlaying",
+      "Controllers": ["Keypad"],
+      "States": [
+        { "Image": "assets/icons/nowPlaying.png" }
+      ],
+      "SupportedInMultiActions": false
+    },
+    {
+      "Name": "Now Playing (Mosaico 2x2)",
+      "Icon": "assets/icons/mosaic.png",
+      "PropertyInspectorPath": "property-inspector/mosaic/inspector.html",
+      "Tooltip": "Um quadrante da capa. Use 4 teclas 2x2 para formar a imagem completa.",
+      "UUID": "com.ulanzi.ulanzistudio.spotifynowplaying.mosaic",
+      "Controllers": ["Keypad"],
+      "States": [
+        { "Image": "assets/icons/mosaic.png" }
+      ],
+      "SupportedInMultiActions": false
+    },
+    {
+      "Name": "Play / Pause",
+      "Icon": "assets/icons/playPause.png",
+      "PropertyInspectorPath": "property-inspector/status/inspector.html",
+      "Tooltip": "Alterna entre tocar e pausar.",
+      "UUID": "com.ulanzi.ulanzistudio.spotifynowplaying.playPause",
+      "Controllers": ["Keypad"],
+      "States": [
+        { "Image": "assets/icons/playPause.png" }
+      ],
+      "SupportedInMultiActions": false
+    },
+    {
+      "Name": "Próxima faixa",
+      "Icon": "assets/icons/next.png",
+      "PropertyInspectorPath": "property-inspector/status/inspector.html",
+      "Tooltip": "Pula para a próxima faixa.",
+      "UUID": "com.ulanzi.ulanzistudio.spotifynowplaying.nextTrack",
+      "Controllers": ["Keypad"],
+      "States": [
+        { "Image": "assets/icons/next.png" }
+      ],
+      "SupportedInMultiActions": true
+    },
+    {
+      "Name": "Faixa anterior",
+      "Icon": "assets/icons/prev.png",
+      "PropertyInspectorPath": "property-inspector/status/inspector.html",
+      "Tooltip": "Volta para a faixa anterior.",
+      "UUID": "com.ulanzi.ulanzistudio.spotifynowplaying.prevTrack",
+      "Controllers": ["Keypad"],
+      "States": [
+        { "Image": "assets/icons/prev.png" }
+      ],
+      "SupportedInMultiActions": true
+    },
+    {
+      "Name": "Volume (dial)",
+      "Icon": "assets/icons/volume.png",
+      "PropertyInspectorPath": "property-inspector/volume/inspector.html",
+      "Tooltip": "Ajusta o volume com o dial. Pressione para mutar.",
+      "UUID": "com.ulanzi.ulanzistudio.spotifynowplaying.volumeDial",
+      "Controllers": ["Encoder"],
+      "States": [
+        { "Image": "assets/icons/volume.png" }
+      ],
+      "SupportedInMultiActions": false
+    }
+  ],
+  "OS": [
+    { "Platform": "windows", "MinimumVersion": "10" },
+    { "Platform": "mac", "MinimumVersion": "10.11" }
+  ],
+  "Software": {
+    "MinVersion": "3.0.11"
+  }
+}
