@@ -27,6 +27,28 @@ export class RestrictionError extends Error {
   }
 }
 
+/**
+ * Rate limit atingido (429). `retryAfterMs` diz por quanto tempo o chamador deve
+ * parar de fazer requisições. Continuar batendo durante o cooldown prolonga o
+ * bloqueio, então respeitar este tempo é essencial.
+ */
+export class RateLimitError extends Error {
+  constructor(retryAfterMs) {
+    super('Rate limit do Spotify atingido.');
+    this.name = 'RateLimitError';
+    this.retryAfterMs = retryAfterMs;
+  }
+}
+
+// Bloqueio global até este timestamp (ms). Enquanto ativo, nenhuma requisição
+// é enviada — falha localmente com RateLimitError para evitar prolongar o 429.
+let blockedUntil = 0;
+
+/** Tempo restante (ms) de bloqueio por rate limit, ou 0 se liberado. */
+export function rateLimitRemainingMs() {
+  return Math.max(0, blockedUntil - Date.now());
+}
+
 async function validToken() {
   if (tokenStore.hasValidAccessToken()) {
     return tokenStore.getAccessToken();
@@ -41,6 +63,12 @@ async function validToken() {
  * @param {boolean} [retry=true]
  */
 async function request(path, opts = {}, retry = true) {
+  // Se estamos em cooldown de rate limit, nem envia — falha localmente.
+  const remaining = rateLimitRemainingMs();
+  if (remaining > 0) {
+    throw new RateLimitError(remaining);
+  }
+
   const token = await validToken();
   const resp = await fetch(`${BASE}${path}`, {
     ...opts,
@@ -50,6 +78,14 @@ async function request(path, opts = {}, retry = true) {
       ...opts.headers,
     },
   });
+
+  if (resp.status === 429) {
+    // Respeita Retry-After (segundos). Bloqueia todas as requisições até lá.
+    const header = Number(resp.headers.get('retry-after'));
+    const retryAfterMs = (Number.isFinite(header) && header > 0 ? header : 5) * 1000;
+    blockedUntil = Date.now() + retryAfterMs;
+    throw new RateLimitError(retryAfterMs);
+  }
 
   if (resp.status === 401 && retry) {
     await refreshAccessToken();
