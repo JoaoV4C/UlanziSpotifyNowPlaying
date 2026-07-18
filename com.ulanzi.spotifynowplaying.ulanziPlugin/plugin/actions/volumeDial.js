@@ -1,16 +1,19 @@
-// Controle de volume pelo dial (Encoder).
-// - Rotação direita/esquerda ajusta o volume em passos.
-// - Pressionar o dial alterna mudo/desmudo (guardando o último volume).
+// Controle de volume pelo dial (Encoder) e por botões (Keypad, para o D200 que
+// não tem dial).
+// - Dial: rotação direita/esquerda ajusta o volume; pressionar alterna mudo.
+// - Botões: "Aumentar volume" / "Diminuir volume" ajustam o volume em passos.
 //
 // As chamadas de volume ao Spotify são debounced: acumulamos o alvo enquanto o
-// usuário gira e enviamos apenas a última posição após uma breve pausa.
+// usuário gira/pressiona e enviamos apenas a última posição após uma breve pausa.
 
 import * as api from '../spotify/api.js';
 import { NoActiveDeviceError, RestrictionError } from '../spotify/api.js';
 import * as tokenStore from '../spotify/tokenStore.js';
 
 const VOLUME_DIAL = 'com.ulanzi.ulanzistudio.spotifynowplaying.volumeDial';
-const STEP = 5;
+const VOLUME_UP = 'com.ulanzi.ulanzistudio.spotifynowplaying.volumeUp';
+const VOLUME_DOWN = 'com.ulanzi.ulanzistudio.spotifynowplaying.volumeDown';
+const STEP = 10;
 const DEBOUNCE_MS = 250;
 
 let $UD = null;
@@ -22,8 +25,20 @@ export function init(ud) {
   $UD = ud;
 }
 
+/** Ação de encoder (dial). */
 export function handles(actionid) {
   return actionid === VOLUME_DIAL;
+}
+
+/** Ações de botão (Keypad): aumentar/diminuir volume, para o D200 sem dial. */
+export function handlesKey(actionid) {
+  return actionid === VOLUME_UP || actionid === VOLUME_DOWN;
+}
+
+/** Trata o toque num botão de volume (evento run). */
+export function runKey(context, actionid) {
+  const direction = actionid === VOLUME_UP ? 'right' : 'left';
+  return rotate(context, direction);
 }
 
 function getState(context) {

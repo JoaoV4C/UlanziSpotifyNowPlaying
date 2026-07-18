@@ -84,6 +84,30 @@
         { "Image": "assets/icons/volume.png" }
       ],
       "SupportedInMultiActions": false
+    },
+    {
+      "Name": "Aumentar volume",
+      "Icon": "assets/icons/volumeUp.png",
+      "PropertyInspectorPath": "property-inspector/status/inspector.html",
+      "Tooltip": "Aumenta o volume em 10%.",
+      "UUID": "com.ulanzi.ulanzistudio.spotifynowplaying.volumeUp",
+      "Controllers": ["Keypad"],
+      "States": [
+        { "Image": "assets/icons/volumeUp.png" }
+      ],
+      "SupportedInMultiActions": true
+    },
+    {
+      "Name": "Diminuir volume",
+      "Icon": "assets/icons/volumeDown.png",
+      "PropertyInspectorPath": "property-inspector/status/inspector.html",
+      "Tooltip": "Diminui o volume em 10%.",
+      "UUID": "com.ulanzi.ulanzistudio.spotifynowplaying.volumeDown",
+      "Controllers": ["Keypad"],
+      "States": [
+        { "Image": "assets/icons/volumeDown.png" }
+      ],
+      "SupportedInMultiActions": true
     }
   ],
   "OS": [

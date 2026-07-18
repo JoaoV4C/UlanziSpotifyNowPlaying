@@ -68,6 +68,7 @@ $UD.onClear((msg) => {
 function onTrigger(msg) {
   const { context, actionType } = normalize(msg);
   if (controls.handles(actionType)) controls.run(context, actionType);
+  else if (volumeDial.handlesKey(actionType)) volumeDial.runKey(context, actionType);
 }
 // Apenas `run` — cada toque emite `run` E `keyup`; ouvir os dois dobraria o
 // comando (pulava 2 faixas em next/prev).
