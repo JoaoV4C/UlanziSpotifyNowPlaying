@@ -52,15 +52,24 @@ export function remove(context) {
 async function onTrack(trackId) {
   if (trackId === currentTrackId) return;
   currentTrackId = trackId;
-  currentSaved = null;
-  applyIconAll(); // limpa/atualiza enquanto verifica
 
-  if (!trackId || !tokenStore.isConnected()) return;
-  try {
-    currentSaved = await api.isTrackSaved(trackId);
-  } catch {
-    currentSaved = null; // falha ao verificar: mantém indefinido
+  // Não redesenha ainda: mantém o ícone anterior durante a verificação para
+  // evitar um "flash" do ícone de adicionar antes de saber o estado real.
+  if (!trackId || !tokenStore.isConnected()) {
+    currentSaved = null;
+    applyIconAll();
+    return;
   }
+
+  let saved = null;
+  try {
+    saved = await api.isTrackSaved(trackId);
+  } catch {
+    saved = null; // falha ao verificar: mantém indefinido
+  }
+  // Ignora se a faixa já mudou de novo durante a verificação (resposta obsoleta).
+  if (trackId !== currentTrackId) return;
+  currentSaved = saved;
   applyIconAll();
 }
 
