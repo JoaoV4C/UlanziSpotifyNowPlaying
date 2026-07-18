@@ -10,9 +10,12 @@ const PLAY_PAUSE = 'com.ulanzi.ulanzistudio.spotifynowplaying.playPause';
 const NEXT = 'com.ulanzi.ulanzistudio.spotifynowplaying.nextTrack';
 const PREV = 'com.ulanzi.ulanzistudio.spotifynowplaying.prevTrack';
 
-// Estados do ícone (ordem casa com "States" no manifest):
-const STATE_PLAYING = 0; // tocando  -> ícone de play
-const STATE_PAUSED = 1; //  pausado -> ícone de pause
+// Índices de "States" no manifest: 0 = ícone de play, 1 = ícone de pause.
+// O botão mostra o ícone da AÇÃO que o toque fará (não do estado atual):
+//   tocando  -> mostra PAUSE (o toque vai pausar)
+//   pausado  -> mostra PLAY  (o toque vai tocar)
+const ICON_PLAY = 0;
+const ICON_PAUSE = 1;
 
 let $UD = null;
 
@@ -62,7 +65,8 @@ export function updatePlayState(isPlaying) {
 }
 
 function applyState(context, isPlaying) {
-  $UD.setStateIcon(context, isPlaying ? STATE_PLAYING : STATE_PAUSED);
+  // Ícone da ação: tocando -> pause; pausado -> play.
+  $UD.setStateIcon(context, isPlaying ? ICON_PAUSE : ICON_PLAY);
 }
 
 // Último acionamento por contexto, para descartar toques duplicados muito
