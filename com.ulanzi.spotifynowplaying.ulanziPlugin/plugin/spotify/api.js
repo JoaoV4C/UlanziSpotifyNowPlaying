@@ -263,3 +263,31 @@ export async function removeTrack(trackId) {
   const uris = encodeURIComponent(trackUri(trackId));
   await request(`/me/library?uris=${uris}`, { method: 'DELETE' });
 }
+
+// ---- Playlists ----------------------------------------------------------------
+
+/**
+ * Detalhes de uma playlist (nome + capa).
+ * @param {string} playlistId
+ * @returns {Promise<{ name: string, coverUrl: string }>}
+ */
+export async function getPlaylist(playlistId) {
+  // fields limita a resposta ao que usamos (nome e capa), reduzindo o payload.
+  const data = await request(`/playlists/${playlistId}?fields=name,images`);
+  const images = Array.isArray(data?.images) ? data.images : [];
+  return {
+    name: data?.name || '',
+    coverUrl: images[0]?.url || '',
+  };
+}
+
+/**
+ * Inicia a reprodução de um contexto (playlist/álbum) no dispositivo ativo.
+ * @param {string} contextUri ex.: 'spotify:playlist:37i9dQ...'
+ */
+export async function playContext(contextUri) {
+  await request('/me/player/play', {
+    method: 'PUT',
+    body: JSON.stringify({ context_uri: contextUri }),
+  });
+}
