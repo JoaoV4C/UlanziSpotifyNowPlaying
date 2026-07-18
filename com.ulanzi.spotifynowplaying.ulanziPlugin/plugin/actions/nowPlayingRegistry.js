@@ -100,14 +100,19 @@ export function run() {
 function openSpotifyApp() {
   const uri = 'spotify:';
   try {
+    let child;
     if (process.platform === 'win32') {
       // 'start' é interno do cmd; o primeiro "" é o título da janela.
-      spawn('cmd', ['/c', 'start', '', uri], { detached: true, stdio: 'ignore' }).unref();
+      child = spawn('cmd', ['/c', 'start', '', uri], { detached: true, stdio: 'ignore' });
     } else if (process.platform === 'darwin') {
-      spawn('open', [uri], { detached: true, stdio: 'ignore' }).unref();
+      child = spawn('open', [uri], { detached: true, stdio: 'ignore' });
     } else {
-      spawn('xdg-open', [uri], { detached: true, stdio: 'ignore' }).unref();
+      child = spawn('xdg-open', [uri], { detached: true, stdio: 'ignore' });
     }
+    // Erros de spawn são assíncronos (ex.: comando não encontrado no PATH);
+    // sem este handler o processo poderia cair com um erro não tratado.
+    child.on('error', () => $UD.openUrl('https://open.spotify.com'));
+    child.unref();
   } catch {
     // Fallback: pede ao Studio para abrir (abre no navegador, mas melhor que nada).
     $UD.openUrl('https://open.spotify.com');
