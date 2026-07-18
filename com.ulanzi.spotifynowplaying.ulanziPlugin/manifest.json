@@ -121,6 +121,18 @@
         { "Image": "assets/icons/like.png" }
       ],
       "SupportedInMultiActions": false
+    },
+    {
+      "Name": "Playlist",
+      "Icon": "assets/icons/playlist.png",
+      "PropertyInspectorPath": "property-inspector/playlist/inspector.html",
+      "Tooltip": "Atalho para tocar uma playlist. Mostra a capa e o nome.",
+      "UUID": "com.ulanzi.ulanzistudio.spotifynowplaying.playlist",
+      "Controllers": ["Keypad"],
+      "States": [
+        { "Image": "assets/icons/playlist.png" }
+      ],
+      "SupportedInMultiActions": false
     }
   ],
   "OS": [
