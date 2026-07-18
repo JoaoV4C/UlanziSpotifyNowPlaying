@@ -1,0 +1,27 @@
+{
+  "Name": "Spotify Now Playing",
+  "Description": "Exibe a faixa atual do Spotify (capa + título) e controla o playback direto do Ulanzi Deck.",
+  "Actions": [
+    { "Name": "Now Playing", "Tooltip": "Mostra a capa e o título da faixa atual." },
+    { "Name": "Now Playing (Mosaico 2x2)", "Tooltip": "Um quadrante da capa. Use 4 teclas 2x2 para formar a imagem completa." },
+    { "Name": "Play / Pause", "Tooltip": "Alterna entre tocar e pausar." },
+    { "Name": "Próxima faixa", "Tooltip": "Pula para a próxima faixa." },
+    { "Name": "Faixa anterior", "Tooltip": "Volta para a faixa anterior." },
+    { "Name": "Volume (dial)", "Tooltip": "Ajusta o volume com o dial. Pressione para mutar." }
+  ],
+  "Localization": {
+    "Quadrante": "Quadrante",
+    "Superior esquerdo": "Superior esquerdo",
+    "Superior direito": "Superior direito",
+    "Inferior esquerdo": "Inferior esquerdo",
+    "Inferior direito": "Inferior direito",
+    "Client ID do Spotify": "Client ID do Spotify",
+    "Conectar ao Spotify": "Conectar ao Spotify",
+    "Sair": "Sair",
+    "Redirect URI (registre no app do Spotify):": "Redirect URI (registe na app do Spotify):",
+    "Coloque as 4 ações (um quadrante cada) em teclas 2×2 adjacentes para formar a capa completa.": "Coloque as 4 ações (um quadrante cada) em teclas 2×2 adjacentes para formar a capa completa.",
+    "Mostra a capa e o título da faixa atual do Spotify, atualizando automaticamente.": "Mostra a capa e o título da faixa atual do Spotify, atualizando automaticamente.",
+    "Controle de playback do Spotify. Requer conta Premium e um dispositivo ativo.": "Controlo de reprodução do Spotify. Requer conta Premium e um dispositivo ativo.",
+    "Gire o dial para ajustar o volume; pressione para mutar/desmutar. Requer Premium e dispositivo ativo.": "Rode o dial para ajustar o volume; pressione para silenciar. Requer Premium e dispositivo ativo."
+  }
+}
