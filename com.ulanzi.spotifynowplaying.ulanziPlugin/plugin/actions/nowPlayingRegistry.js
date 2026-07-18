@@ -113,7 +113,8 @@ async function tick() {
       return;
     }
     if (e instanceof NoActiveDeviceError) {
-      pushTextToAll('Sem\ndispositivo');
+      // Sem dispositivo ativo: mostra o ícone padrão da ação.
+      pushDefaultIconToAll();
     } else {
       pushTextToAll('Erro');
     }
@@ -127,7 +128,8 @@ async function tick() {
   notifyObservers(state);
 
   if (!state) {
-    pushTextToAll('Nada\ntocando');
+    // Nada tocando: mostra o ícone padrão da ação.
+    pushDefaultIconToAll();
     lastTrackId = null;
     lastState = null;
     return;
@@ -176,6 +178,12 @@ function setText(context, text) {
   // Placeholder textual: usamos setBaseDataIcon com um PNG 1x1 transparente + texto,
   // mas o SDK também aceita showtext via textData. Aqui apenas mostramos o texto.
   $UD.setBaseDataIcon(context, TRANSPARENT_PNG_B64, text);
+}
+
+// Restaura o ícone padrão da ação (State 0 do manifest): nota musical no single,
+// quadrados no mosaico. Usado quando não há capa para mostrar.
+function pushDefaultIconToAll() {
+  for (const context of instances.keys()) $UD.setStateIcon(context, 0);
 }
 
 function truncate(s, n = 40) {
