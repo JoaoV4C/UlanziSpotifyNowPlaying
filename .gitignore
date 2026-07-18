@@ -3,3 +3,4 @@ node_modules/
 .DS_Store
 com.ulanzi.spotifynowplaying.ulanziPlugin/node_modules/
 com.ulanzi.spotifynowplaying.ulanziPlugin/plugin/ratelimit.json
+com.ulanzi.spotifynowplaying.ulanziPlugin/assets/icons-backup/
