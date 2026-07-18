@@ -6,7 +6,20 @@
 // Este módulo mantém uma cópia em memória e expõe uma Promise que resolve quando
 // as settings iniciais chegam.
 
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 const SETTINGS_KEY = 'spotifyAuth';
+const PLUGIN_UUID = 'com.ulanzi.ulanzistudio.spotifynowplaying';
+
+// O UlanziStudio persiste as global settings em Config/global_settings.json,
+// aninhadas sob o UUID do plugin. Lemos esse arquivo como fonte confiável no
+// arranque, porque a resposta do getGlobalSettings via WebSocket nem sempre chega.
+const GLOBAL_SETTINGS_FILE = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '../../../../Config/global_settings.json'
+);
 
 let $UD = null;
 let cache = { clientId: '', accessToken: '', refreshToken: '', expiresAt: 0 };
@@ -23,21 +36,44 @@ const ready = new Promise((resolve) => {
 export function init(ud) {
   $UD = ud;
 
+  // 1. Fonte confiável: lê o arquivo de global settings persistido pelo Studio.
+  loadFromDisk();
+
+  // 2. Também escuta a resposta do WebSocket (mantém em sincronia se mudar em runtime).
   $UD.onDidReceiveGlobalSettings((msg) => {
-    const settings = msg?.settings ?? msg?.param ?? {};
-    const auth = settings[SETTINGS_KEY];
-    if (auth && typeof auth === 'object') {
+    const auth = extractAuth(msg?.settings ?? msg?.param ?? {});
+    if (auth) {
       cache = { ...cache, ...auth };
     }
     resolveReady();
   });
 
-  // Pede as settings salvas; a resposta chega no handler acima.
   $UD.getGlobalSettings();
 
-  // Failsafe: se o app não responder (ex. primeira execução sem settings salvas),
-  // libera o ready mesmo assim depois de um curto intervalo.
-  setTimeout(resolveReady, 1500);
+  // Failsafe: libera o ready mesmo que a resposta do WebSocket não chegue.
+  setTimeout(resolveReady, 1200);
+}
+
+// Aceita tanto o objeto direto ({ spotifyAuth: {...} }) quanto o aninhado sob o
+// UUID do plugin ({ [uuid]: { spotifyAuth: {...} } }), como o Studio persiste.
+function extractAuth(obj) {
+  if (!obj || typeof obj !== 'object') return null;
+  if (obj[SETTINGS_KEY] && typeof obj[SETTINGS_KEY] === 'object') return obj[SETTINGS_KEY];
+  const nested = obj[PLUGIN_UUID];
+  if (nested && typeof nested === 'object' && nested[SETTINGS_KEY]) return nested[SETTINGS_KEY];
+  return null;
+}
+
+function loadFromDisk() {
+  try {
+    const raw = fs.readFileSync(GLOBAL_SETTINGS_FILE, 'utf8');
+    const auth = extractAuth(JSON.parse(raw));
+    if (auth) {
+      cache = { ...cache, ...auth };
+    }
+  } catch {
+    // Arquivo ausente ou inválido (ex.: primeira execução) — segue sem sessão.
+  }
 }
 
 /** Aguarda o carregamento inicial das settings. */

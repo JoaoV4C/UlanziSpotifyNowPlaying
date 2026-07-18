@@ -3,6 +3,7 @@
 // teclas para os módulos de cada ação.
 
 import UlanziApi from './plugin-common-node/index.js';
+import './diaglog.js'; // registra captura de erros não tratados
 
 import * as tokenStore from './spotify/tokenStore.js';
 import * as auth from './spotify/auth.js';
@@ -33,20 +34,22 @@ $UD.onConnected(() => {
 // ---- Ciclo de vida das teclas -------------------------------------------------
 
 $UD.onAdd((msg) => {
-  const { context, actionid, param } = normalize(msg);
-  nowPlaying.add(context, actionid, param);
+  const { context, actionType, param } = normalize(msg);
+  nowPlaying.add(context, actionType, param);
+  controls.add(context, actionType);
 });
 
 // setactive: a página/perfil ficou visível novamente — redesenha now playing.
 $UD.onSetActive((msg) => {
-  const { context, actionid, param } = normalize(msg);
-  nowPlaying.add(context, actionid, param);
+  const { context, actionType, param } = normalize(msg);
+  nowPlaying.add(context, actionType, param);
+  controls.add(context, actionType);
 });
 
 // Configuração alterada no Property Inspector (ex.: quadrante do mosaico).
 $UD.onParamFromApp((msg) => {
-  const { context, actionid, param } = normalize(msg);
-  if (actionid === MOSAIC) nowPlaying.updateSettings(context, param);
+  const { context, actionType, param } = normalize(msg);
+  if (actionType === MOSAIC) nowPlaying.updateSettings(context, param);
 });
 
 $UD.onClear((msg) => {
@@ -56,30 +59,32 @@ $UD.onClear((msg) => {
     if (!context) continue;
     nowPlaying.remove(context);
     volumeDial.remove(context);
+    controls.remove(context);
   }
 });
 
 // ---- Acionamentos -------------------------------------------------------------
 
 function onTrigger(msg) {
-  const { context, actionid } = normalize(msg);
-  if (controls.handles(actionid)) controls.run(context, actionid);
+  const { context, actionType } = normalize(msg);
+  if (controls.handles(actionType)) controls.run(context, actionType);
 }
+// Apenas `run` — cada toque emite `run` E `keyup`; ouvir os dois dobraria o
+// comando (pulava 2 faixas em next/prev).
 $UD.onRun(onTrigger);
-$UD.onKeyUp(onTrigger);
 
 // Encoder (dial de volume)
 $UD.onDialRotateLeft((msg) => {
-  const { context, actionid } = normalize(msg);
-  if (volumeDial.handles(actionid)) volumeDial.rotate(context, 'left');
+  const { context, actionType } = normalize(msg);
+  if (volumeDial.handles(actionType)) volumeDial.rotate(context, 'left');
 });
 $UD.onDialRotateRight((msg) => {
-  const { context, actionid } = normalize(msg);
-  if (volumeDial.handles(actionid)) volumeDial.rotate(context, 'right');
+  const { context, actionType } = normalize(msg);
+  if (volumeDial.handles(actionType)) volumeDial.rotate(context, 'right');
 });
 $UD.onDialDown((msg) => {
-  const { context, actionid } = normalize(msg);
-  if (volumeDial.handles(actionid)) volumeDial.press(context);
+  const { context, actionType } = normalize(msg);
+  if (volumeDial.handles(actionType)) volumeDial.press(context);
 });
 
 // ---- Comunicação com os Property Inspectors ----------------------------------
@@ -156,7 +161,9 @@ function broadcastAuthStatus(message) {
 function normalize(msg) {
   return {
     context: msg?.context || (msg ? $UD.encodeContext(msg) : ''),
-    actionid: msg?.actionid || '',
+    // O tipo da ação (o que casa com o manifest) vem em `uuid`.
+    // `actionid` é um GUID por-instância gerado pelo Studio — não serve para rotear.
+    actionType: msg?.uuid || '',
     param: msg?.param || {},
   };
 }
