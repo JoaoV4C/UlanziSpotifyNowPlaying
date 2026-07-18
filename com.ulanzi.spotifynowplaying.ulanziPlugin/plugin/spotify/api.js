@@ -2,10 +2,18 @@
 // Garante um access token válido (renova via refresh token) e reenvia a
 // requisição uma vez em caso de 401.
 
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import * as tokenStore from './tokenStore.js';
 import { refreshAccessToken } from './auth.js';
+import { logLine } from '../diaglog.js';
 
 const BASE = 'https://api.spotify.com/v1';
+
+// Persiste o fim do bloqueio para sobreviver a reinícios do processo — assim o
+// plugin não volta a martelar a API durante um cooldown ainda ativo.
+const BLOCK_FILE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../ratelimit.json');
 
 /** Erro específico: não há dispositivo Spotify ativo (a API retorna 404). */
 export class NoActiveDeviceError extends Error {
@@ -27,6 +35,51 @@ export class RestrictionError extends Error {
   }
 }
 
+/**
+ * Rate limit atingido (429). `retryAfterMs` diz por quanto tempo o chamador deve
+ * parar de fazer requisições. Continuar batendo durante o cooldown prolonga o
+ * bloqueio, então respeitar este tempo é essencial.
+ */
+export class RateLimitError extends Error {
+  constructor(retryAfterMs) {
+    super('Rate limit do Spotify atingido.');
+    this.name = 'RateLimitError';
+    this.retryAfterMs = retryAfterMs;
+  }
+}
+
+// Bloqueio global até este timestamp (ms). Enquanto ativo, nenhuma requisição
+// é enviada — falha localmente com RateLimitError para evitar prolongar o 429.
+// Inicializado a partir do disco para respeitar um cooldown anterior.
+let blockedUntil = loadBlockedUntil();
+
+function loadBlockedUntil() {
+  try {
+    const { blockedUntil: v } = JSON.parse(fs.readFileSync(BLOCK_FILE, 'utf8'));
+    const ts = Number(v) || 0;
+    if (ts > Date.now()) {
+      logLine(`RATE_LIMIT restaurado do disco — bloqueado até ${new Date(ts).toISOString()}`);
+      return ts;
+    }
+  } catch {
+    /* sem arquivo ou inválido — sem bloqueio */
+  }
+  return 0;
+}
+
+function saveBlockedUntil() {
+  try {
+    fs.writeFileSync(BLOCK_FILE, JSON.stringify({ blockedUntil }));
+  } catch {
+    /* ignore */
+  }
+}
+
+/** Tempo restante (ms) de bloqueio por rate limit, ou 0 se liberado. */
+export function rateLimitRemainingMs() {
+  return Math.max(0, blockedUntil - Date.now());
+}
+
 async function validToken() {
   if (tokenStore.hasValidAccessToken()) {
     return tokenStore.getAccessToken();
@@ -41,6 +94,12 @@ async function validToken() {
  * @param {boolean} [retry=true]
  */
 async function request(path, opts = {}, retry = true) {
+  // Se estamos em cooldown de rate limit, nem envia — falha localmente.
+  const remaining = rateLimitRemainingMs();
+  if (remaining > 0) {
+    throw new RateLimitError(remaining);
+  }
+
   const token = await validToken();
   const resp = await fetch(`${BASE}${path}`, {
     ...opts,
@@ -50,6 +109,27 @@ async function request(path, opts = {}, retry = true) {
       ...opts.headers,
     },
   });
+
+  if (resp.status === 429) {
+    // Respeita Retry-After (segundos). Bloqueia todas as requisições até lá.
+    const header = resp.headers.get('retry-after');
+    const seconds = Number(header);
+    const retryAfterMs = (Number.isFinite(seconds) && seconds > 0 ? seconds : 5) * 1000;
+    blockedUntil = Date.now() + retryAfterMs;
+    saveBlockedUntil();
+    logLine(
+      `RATE_LIMIT 429 em ${path} — Retry-After: ${header ?? '(ausente, assumindo 5)'}s; ` +
+        `bloqueado até ${new Date(blockedUntil).toISOString()}`
+    );
+    throw new RateLimitError(retryAfterMs);
+  }
+
+  // Primeira resposta não-429 depois de um bloqueio: registra a liberação.
+  if (blockedUntil > 0 && resp.status !== 429) {
+    logLine('RATE_LIMIT liberado — requisições normalizadas.');
+    blockedUntil = 0;
+    saveBlockedUntil();
+  }
 
   if (resp.status === 401 && retry) {
     await refreshAccessToken();
