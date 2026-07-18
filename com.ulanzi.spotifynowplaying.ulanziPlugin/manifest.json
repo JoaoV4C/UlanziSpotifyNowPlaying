@@ -44,7 +44,8 @@
       "UUID": "com.ulanzi.ulanzistudio.spotifynowplaying.playPause",
       "Controllers": ["Keypad"],
       "States": [
-        { "Image": "assets/icons/playPause.png" }
+        { "Image": "assets/icons/play.png" },
+        { "Image": "assets/icons/pause.png" }
       ],
       "SupportedInMultiActions": false
     },

@@ -20,15 +20,42 @@ let timer = null;
 let lastTrackId = null;
 let lastState = null; // último estado observado (para forçar re-render em novas teclas)
 
+// Observadores externos do poller (ex.: botão Play/Pause) que também recebem cada
+// leitura do player e podem manter o poller vivo mesmo sem teclas de Now Playing.
+// Cada observador: { count: () => número de teclas ativas, onState: (state|null) => void }
+const observers = new Set();
+
 export function init(ud) {
   $UD = ud;
 }
 
-/** Registra/atualiza uma instância de now playing. */
-export function add(context, actionid, settings = {}) {
-  if (actionid === NOW_PLAYING) {
+/** Registra um observador do poller. Retorna uma função para desregistrar. */
+export function addObserver(observer) {
+  observers.add(observer);
+  // Só liga o poller se este observador já tiver teclas ativas; do contrário
+  // ele será ligado quando a primeira tecla for adicionada.
+  if (activeConsumers() > 0) ensurePolling();
+  if (lastState) observer.onState?.(lastState);
+  return () => observers.delete(observer);
+}
+
+// Total de "consumidores" que justificam manter o poller rodando.
+function activeConsumers() {
+  let n = instances.size;
+  for (const o of observers) n += o.count?.() || 0;
+  return n;
+}
+
+/** Garante que o poller esteja rodando se houver consumidores. Idempotente. */
+export function ensureRunning() {
+  if (activeConsumers() > 0) ensurePolling();
+}
+
+/** Registra/atualiza uma instância de now playing. `actionType` é o msg.uuid. */
+export function add(context, actionType, settings = {}) {
+  if (actionType === NOW_PLAYING) {
     instances.set(context, { type: 'single' });
-  } else if (actionid === MOSAIC) {
+  } else if (actionType === MOSAIC) {
     instances.set(context, { type: 'mosaic', quadrant: Number(settings.quadrant) || 0 });
   } else {
     return;
@@ -52,7 +79,7 @@ export function updateSettings(context, settings = {}) {
 /** Remove uma instância (tecla limpa). */
 export function remove(context) {
   instances.delete(context);
-  if (instances.size === 0) stopPolling();
+  if (activeConsumers() === 0) stopPolling();
 }
 
 function ensurePolling() {
@@ -69,9 +96,10 @@ function stopPolling() {
 }
 
 async function tick() {
-  if (instances.size === 0) return;
+  if (activeConsumers() === 0) return;
   if (!tokenStore.isConnected()) {
     pushTextToAll('Conecte\no Spotify');
+    notifyObservers(null);
     return;
   }
 
@@ -85,8 +113,13 @@ async function tick() {
       pushTextToAll('Erro');
     }
     lastTrackId = null;
+    notifyObservers(null);
     return;
   }
+
+  // Notifica observadores (ex.: Play/Pause) a cada leitura — o estado de
+  // reprodução pode mudar sem a faixa mudar (pausar a mesma música).
+  notifyObservers(state);
 
   if (!state) {
     pushTextToAll('Nada\ntocando');
@@ -102,6 +135,16 @@ async function tick() {
 
   for (const [context, inst] of instances) {
     await renderInstance(context, inst, state).catch(() => {});
+  }
+}
+
+function notifyObservers(state) {
+  for (const o of observers) {
+    try {
+      o.onState?.(state);
+    } catch {
+      /* observador não deve interromper o poller */
+    }
   }
 }
 
