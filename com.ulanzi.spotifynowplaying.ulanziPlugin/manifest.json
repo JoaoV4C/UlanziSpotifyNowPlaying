@@ -108,6 +108,19 @@
         { "Image": "assets/icons/volumeDown.png" }
       ],
       "SupportedInMultiActions": true
+    },
+    {
+      "Name": "Curtir",
+      "Icon": "assets/icons/likeAdd.png",
+      "PropertyInspectorPath": "property-inspector/status/inspector.html",
+      "Tooltip": "Curte ou descurte a faixa atual. Mostra ✓ quando já curtida.",
+      "UUID": "com.ulanzi.ulanzistudio.spotifynowplaying.like",
+      "Controllers": ["Keypad"],
+      "States": [
+        { "Image": "assets/icons/likeAdd.png" },
+        { "Image": "assets/icons/like.png" }
+      ],
+      "SupportedInMultiActions": false
     }
   ],
   "OS": [
