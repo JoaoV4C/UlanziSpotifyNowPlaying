@@ -1,0 +1,49 @@
+.auth-status {
+  font-size: 12px;
+  margin: 6px 0;
+  min-height: 16px;
+}
+.auth-status.ok {
+  color: #1db954;
+}
+.auth-status.pending {
+  color: #e0a800;
+}
+.auth-status.error {
+  color: #ff5c5c;
+}
+.auth-hint {
+  font-size: 11px;
+  opacity: 0.7;
+  line-height: 1.4;
+  margin: 4px 0;
+}
+.auth-hint code {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 1px 4px;
+  border-radius: 3px;
+  user-select: all;
+}
+.auth-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+.uspi-btn {
+  background: #1db954;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.uspi-btn:hover {
+  filter: brightness(1.08);
+}
+.uspi-btn:active {
+  filter: brightness(0.92);
+}
+#btnLogout {
+  background: #555;
+}
