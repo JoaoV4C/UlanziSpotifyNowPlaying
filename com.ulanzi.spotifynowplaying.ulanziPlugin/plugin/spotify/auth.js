@@ -18,6 +18,7 @@ const SCOPES = [
   'user-modify-playback-state',
   'user-library-read', // verificar se a faixa está salva (curtida)
   'user-library-modify', // curtir/descurtir faixas
+  'playlist-read-private', // ler nome/capa de playlists privadas do usuário
 ].join(' ');
 
 // Estado do fluxo de login em andamento (só existe entre "Conectar" e o callback).
