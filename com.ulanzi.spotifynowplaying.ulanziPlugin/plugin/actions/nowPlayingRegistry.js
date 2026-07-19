@@ -8,7 +8,7 @@ import { NoActiveDeviceError, RateLimitError } from '../spotify/api.js';
 import * as cover from '../render/cover.js';
 import * as tokenStore from '../spotify/tokenStore.js';
 
-const POLL_MS = 5000;
+const POLL_MS = 2000;
 
 const NOW_PLAYING = 'com.ulanzi.ulanzistudio.spotifynowplaying.nowPlaying';
 const MOSAIC = 'com.ulanzi.ulanzistudio.spotifynowplaying.mosaic';
@@ -50,6 +50,19 @@ function activeConsumers() {
 /** Garante que o poller esteja rodando se houver consumidores. Idempotente. */
 export function ensureRunning() {
   if (activeConsumers() > 0) ensurePolling();
+}
+
+/**
+ * Força uma atualização imediata do Now Playing — usado após next/prev no Deck,
+ * para a capa/título trocarem na hora em vez de esperar o próximo tick.
+ * Espera um instante para o Spotify refletir a nova faixa antes de reler.
+ */
+export function refreshSoon(delayMs = 350) {
+  if (activeConsumers() === 0) return;
+  lastTrackId = null; // força re-render mesmo que o trackId pareça igual
+  setTimeout(() => {
+    tick().catch(() => {});
+  }, delayMs);
 }
 
 /** Registra/atualiza uma instância de now playing. `actionType` é o msg.uuid. */

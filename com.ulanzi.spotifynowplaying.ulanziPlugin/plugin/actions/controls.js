@@ -92,8 +92,10 @@ export async function run(context, actionid) {
       updatePlayState(nowPlaying); // reflete o novo estado no ícone na hora
     } else if (actionid === NEXT) {
       await api.next();
+      poller.refreshSoon(); // atualiza capa/título na hora ao trocar de faixa
     } else if (actionid === PREV) {
       await api.previous();
+      poller.refreshSoon();
     }
   } catch (e) {
     if (e instanceof RestrictionError) {
