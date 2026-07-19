@@ -106,7 +106,6 @@ function onTrigger(msg) {
   else if (volumeDial.handlesKey(actionType)) volumeDial.runKey(context, actionType);
   else if (likeTrack.handles(actionType)) likeTrack.run(context);
   else if (playlist.handles(actionType)) playlist.run(context);
-  else if (nowPlaying.handles(actionType)) nowPlaying.run(context);
 }
 // Apenas `run` — cada toque emite `run` E `keyup`; ouvir os dois dobraria o
 // comando (pulava 2 faixas em next/prev).

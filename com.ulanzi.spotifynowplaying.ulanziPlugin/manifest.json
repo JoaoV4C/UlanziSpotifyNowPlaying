@@ -16,7 +16,7 @@
       "Name": "Now Playing",
       "Icon": "assets/icons/nowPlaying.png",
       "PropertyInspectorPath": "property-inspector/nowPlaying/inspector.html",
-      "Tooltip": "Mostra a capa e o título da faixa atual. Aperte para abrir o Spotify.",
+      "Tooltip": "Mostra a capa e o título da faixa atual.",
       "UUID": "com.ulanzi.ulanzistudio.spotifynowplaying.nowPlaying",
       "Controllers": ["Keypad"],
       "States": [
