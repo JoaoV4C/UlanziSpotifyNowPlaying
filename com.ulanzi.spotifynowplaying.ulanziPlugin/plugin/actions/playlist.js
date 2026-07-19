@@ -15,6 +15,10 @@ let $UD = null;
 // context -> { playlistId, name, coverUrl }
 const instances = new Map();
 
+// Cache dos metadados por playlistId (nome+capa), para não re-buscar na API a
+// cada troca de página — o que fazia o ícone piscar.
+const metaCache = new Map(); // playlistId -> { name, coverUrl }
+
 export function init(ud) {
   $UD = ud;
 }
@@ -43,8 +47,20 @@ export function parsePlaylistId(input) {
 export async function add(context, actionType, settings = {}) {
   if (actionType !== PLAYLIST) return;
   const playlistId = parsePlaylistId(settings.playlistUrl || settings.playlist || '');
-  instances.set(context, { playlistId, name: '', coverUrl: '' });
-  await refresh(context);
+
+  // Reaproveita metadados já conhecidos (cache) para desenhar na hora, sem piscar.
+  const cached = metaCache.get(playlistId);
+  instances.set(context, {
+    playlistId,
+    name: cached?.name || '',
+    coverUrl: cached?.coverUrl || '',
+  });
+
+  if (cached) {
+    await draw(context); // desenha imediatamente com o cache
+  } else {
+    await refresh(context); // primeira vez: busca na API
+  }
 }
 
 /** Config alterada no Property Inspector. */
@@ -70,7 +86,8 @@ async function refresh(context) {
   if (!inst) return;
 
   if (!inst.playlistId) {
-    setText(context, 'Configure\na playlist');
+    // Sem playlist configurada: mostra o ícone padrão da ação (do manifest).
+    $UD.setStateIcon(context, 0);
     return;
   }
   if (!tokenStore.isConnected()) {
@@ -82,6 +99,7 @@ async function refresh(context) {
     const { name, coverUrl } = await api.getPlaylist(inst.playlistId);
     inst.name = name;
     inst.coverUrl = coverUrl;
+    metaCache.set(inst.playlistId, { name, coverUrl }); // guarda p/ próximas trocas de página
     await draw(context);
   } catch (e) {
     if (e instanceof RateLimitError) return; // cooldown: mantém o que está
@@ -93,7 +111,7 @@ async function draw(context) {
   const inst = instances.get(context);
   if (!inst) return;
   if (inst.coverUrl) {
-    const b64 = await cover.renderSingle(inst.coverUrl);
+    const b64 = await cover.renderSingle(inst.coverUrl, 'playlist');
     $UD.setBaseDataIcon(context, b64, truncate(inst.name));
   } else {
     setText(context, inst.name || 'Playlist');
