@@ -3,6 +3,7 @@
 // requisição uma vez em caso de 401.
 
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as tokenStore from './tokenStore.js';
@@ -93,7 +94,7 @@ async function validToken() {
  * @param {RequestInit} [opts]
  * @param {boolean} [retry=true]
  */
-async function request(path, opts = {}, retry = true) {
+async function request(path, opts = {}, retry = true, allowActivate = true) {
   // Se estamos em cooldown de rate limit, nem envia — falha localmente.
   const remaining = rateLimitRemainingMs();
   if (remaining > 0) {
@@ -133,10 +134,18 @@ async function request(path, opts = {}, retry = true) {
 
   if (resp.status === 401 && retry) {
     await refreshAccessToken();
-    return request(path, opts, false);
+    return request(path, opts, false, allowActivate);
   }
   if (resp.status === 404) {
-    // Nos endpoints de player, 404 significa "sem dispositivo ativo".
+    // Nos endpoints de player, 404 = "sem dispositivo ativo". Ativamos apenas o
+    // Spotify DESTE PC e repetimos o comando naquele dispositivo (via ?device_id=),
+    // que funciona mesmo enquanto ele acaba de ficar ativo. Se este PC não estiver
+    // disponível, activateAvailableDevice lança NoActiveDeviceError.
+    if (allowActivate) {
+      const deviceId = await activateAvailableDevice();
+      const sep = path.includes('?') ? '&' : '?';
+      return request(`${path}${sep}device_id=${deviceId}`, opts, retry, /*allowActivate*/ false);
+    }
     throw new NoActiveDeviceError();
   }
   if (resp.status === 403) {
@@ -204,6 +213,67 @@ function pickCover(images) {
   if (!Array.isArray(images) || images.length === 0) return '';
   // images vem ordenado do maior para o menor; pegamos o maior para fatiar bem.
   return images[0].url || '';
+}
+
+// ---- Dispositivos (ativar o Spotify aberto no PC) ----------------------------
+
+/** Lista os dispositivos Spotify disponíveis (mesmo os inativos). */
+export async function getDevices() {
+  const data = await request('/me/player/devices', {}, true, /*allowActivate*/ false);
+  return Array.isArray(data?.devices) ? data.devices : [];
+}
+
+// Normaliza um nome para comparação (case-insensitive, sem espaços nas pontas).
+function norm(s) {
+  return String(s || '').trim().toLowerCase();
+}
+
+/**
+ * Encontra o Spotify DESTE computador: um device do tipo 'Computer' cujo nome
+ * bate com o hostname da máquina. É o único que ativamos automaticamente, para
+ * nunca acionar o Spotify de outro aparelho (ex.: celular) por engano.
+ */
+function findLocalComputer(devices) {
+  const host = norm(os.hostname());
+  return devices.find(
+    (d) => d.type === 'Computer' && !d.is_restricted && norm(d.name) === host
+  ) || null;
+}
+
+/** Transfere/ativa a reprodução para um dispositivo. `play` inicia o playback. */
+export async function transferPlayback(deviceId, play = false) {
+  await request(
+    '/me/player',
+    { method: 'PUT', body: JSON.stringify({ device_ids: [deviceId], play }) },
+    true,
+    /*allowActivate*/ false
+  );
+}
+
+/**
+ * Quando um comando dá 404 (sem dispositivo ativo), decide onde agir:
+ *  - se já há um device ativo (qualquer um), usa-o (não deveria dar 404, mas por
+ *    segurança);
+ *  - senão, ativa APENAS o Spotify deste PC (Computer com nome == hostname).
+ * Lança NoActiveDeviceError se este PC não estiver disponível.
+ * @returns {Promise<string>} o device_id em que o comando deve ser repetido.
+ */
+async function activateAvailableDevice() {
+  const devices = await getDevices();
+
+  const active = devices.find((d) => d.is_active);
+  if (active) return active.id; // já há algo tocando — controla esse
+
+  const local = findLocalComputer(devices);
+  if (!local) {
+    // Nenhum device ativo e o Spotify deste PC não está disponível.
+    throw new NoActiveDeviceError();
+  }
+
+  await transferPlayback(local.id, /*play*/ false);
+  // Pequena espera para o Spotify registrar o dispositivo como ativo.
+  await new Promise((r) => setTimeout(r, 400));
+  return local.id;
 }
 
 export async function play() {

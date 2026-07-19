@@ -125,12 +125,10 @@ export async function run(context) {
 
   if (!tokenStore.isConnected()) {
     $UD.toast('Conecte-se ao Spotify primeiro.');
-    $UD.showAlert(context);
     return;
   }
   if (!inst.playlistId) {
     $UD.toast('Configure a URL da playlist no botão.');
-    $UD.showAlert(context);
     return;
   }
 
@@ -138,7 +136,7 @@ export async function run(context) {
     await api.playContext(`spotify:playlist:${inst.playlistId}`);
   } catch (e) {
     if (e instanceof NoActiveDeviceError) {
-      $UD.toast('Nenhum dispositivo Spotify ativo. Abra o Spotify e toque algo.');
+      $UD.toast('Abra o Spotify neste computador para usar os comandos.');
     } else if (e instanceof RestrictionError) {
       // ignora
     } else if (e instanceof RateLimitError) {
@@ -146,7 +144,6 @@ export async function run(context) {
     } else {
       $UD.toast(`Erro ao tocar playlist: ${e.message}`);
     }
-    $UD.showAlert(context);
   }
 }
 
