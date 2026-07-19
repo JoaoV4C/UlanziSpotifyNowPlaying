@@ -44,8 +44,9 @@ export function handles(actionid) {
 export function add(context, actionType) {
   if (actionType !== PLAY_PAUSE) return;
   playPauseContexts.add(context);
-  // Aplica o estado conhecido imediatamente; se nenhum, assume tocando.
-  applyState(context, lastIsPlaying ?? true);
+  // Aplica o estado conhecido imediatamente; sem estado, assume pausado — a tecla
+  // mostra o ícone de PLAY por padrão até o poller informar o estado real.
+  applyState(context, lastIsPlaying ?? false);
   poller.ensureRunning(); // garante que o estado seja atualizado periodicamente
 }
 
