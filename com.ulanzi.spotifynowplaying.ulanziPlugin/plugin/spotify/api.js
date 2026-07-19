@@ -206,6 +206,7 @@ export async function getPlaybackState() {
     coverUrl: pickCover(item.album?.images),
     volumePercent:
       typeof data.device?.volume_percent === 'number' ? data.device.volume_percent : null,
+    progressMs: typeof data.progress_ms === 'number' ? data.progress_ms : 0,
   };
 }
 
@@ -297,8 +298,32 @@ export async function next() {
   await request('/me/player/next', { method: 'POST' });
 }
 
+/** Reinicia a faixa atual (volta ao início). */
+export async function seekToStart() {
+  await request('/me/player/seek?position_ms=0', { method: 'PUT' });
+}
+
+// Além deste ponto (ms) na faixa, "anterior" reinicia; antes dele, vai para a
+// faixa anterior — como no app do Spotify.
+const PREVIOUS_RESTART_THRESHOLD_MS = 3000;
+
+/**
+ * "Anterior" no estilo do app do Spotify: se a faixa já passou de ~3s, reinicia;
+ * se está no começo, vai para a faixa anterior.
+ */
 export async function previous() {
-  await request('/me/player/previous', { method: 'POST' });
+  let progressMs = 0;
+  try {
+    const state = await getPlaybackState();
+    progressMs = state?.progressMs ?? 0;
+  } catch {
+    // Sem estado, cai no comportamento padrão (faixa anterior).
+  }
+  if (progressMs > PREVIOUS_RESTART_THRESHOLD_MS) {
+    await seekToStart();
+  } else {
+    await request('/me/player/previous', { method: 'POST' });
+  }
 }
 
 /** Define o volume (0..100). */
