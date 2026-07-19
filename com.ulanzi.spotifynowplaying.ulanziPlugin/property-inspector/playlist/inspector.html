@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="stylesheet" href="../../libs/css/uspi.css" />
+  <link rel="stylesheet" href="../authPanel.css" />
+  <script src="../../libs/js/constants.js"></script>
+  <script src="../../libs/js/eventEmitter.js"></script>
+  <script src="../../libs/js/timers.js"></script>
+  <script src="../../libs/js/utils.js"></script>
+  <script src="../../libs/js/ulanziApi.js"></script>
+</head>
+<body>
+  <div class="uspi-wrapper">
+    <form id="property-inspector">
+      <div class="uspi-item">
+        <div class="uspi-item-label" data-localize>URL ou URI da playlist</div>
+        <input
+          type="text"
+          class="uspi-item-value"
+          name="playlistUrl"
+          id="playlistUrl"
+          placeholder="https://open.spotify.com/playlist/..."
+        />
+      </div>
+      <p class="auth-hint" data-localize>
+        Cole o link da playlist (Compartilhar → Copiar link) ou a URI (spotify:playlist:...).
+        O botão mostra a capa e o nome, e toca a playlist ao ser apertado.
+      </p>
+    </form>
+
+    <hr />
+
+    <!-- Painel de conexão com o Spotify -->
+    <div class="uspi-item">
+      <div class="uspi-item-label" data-localize>Client ID do Spotify</div>
+      <input type="text" class="uspi-item-value" id="clientId" placeholder="xxxxxxxxxxxx" />
+    </div>
+    <p class="auth-hint">
+      <span data-localize>Redirect URI (registre no app do Spotify):</span>
+      <br /><code id="redirectUri">http://127.0.0.1:8888/callback</code>
+    </p>
+    <div class="auth-buttons">
+      <button type="button" class="uspi-btn" id="btnConnect" data-localize>Conectar ao Spotify</button>
+      <button type="button" class="uspi-btn" id="btnLogout" style="display:none" data-localize>Sair</button>
+    </div>
+    <div class="auth-status" id="authStatus"></div>
+  </div>
+
+  <script src="../authPanel.js"></script>
+  <script>
+    $UD.connect('com.ulanzi.ulanzistudio.spotifynowplaying.playlist');
+
+    $UD.onAdd((message) => {
+      Utils.setFormValue(message.param, '#property-inspector');
+    });
+
+    document.getElementById('property-inspector').addEventListener('change', () => {
+      const params = Utils.getFormValue('#property-inspector');
+      $UD.sendParamFromPlugin(params);
+    });
+
+    initAuthPanel();
+  </script>
+</body>
+</html>

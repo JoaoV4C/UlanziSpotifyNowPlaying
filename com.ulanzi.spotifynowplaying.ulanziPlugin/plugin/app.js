@@ -11,9 +11,11 @@ import * as nowPlaying from './actions/nowPlayingRegistry.js';
 import * as controls from './actions/controls.js';
 import * as volumeDial from './actions/volumeDial.js';
 import * as likeTrack from './actions/likeTrack.js';
+import * as playlist from './actions/playlist.js';
 
 const PLUGIN_UUID = 'com.ulanzi.ulanzistudio.spotifynowplaying';
 const MOSAIC = 'com.ulanzi.ulanzistudio.spotifynowplaying.mosaic';
+const PLAYLIST = 'com.ulanzi.ulanzistudio.spotifynowplaying.playlist';
 
 const $UD = new UlanziApi();
 
@@ -34,6 +36,7 @@ function setupOnce() {
   controls.init($UD);
   volumeDial.init($UD);
   likeTrack.init($UD);
+  playlist.init($UD);
 
   // Resultado do fluxo de login → avisa qualquer Property Inspector aberto.
   auth.onResult({
@@ -63,6 +66,7 @@ $UD.onAdd((msg) => {
   nowPlaying.add(context, actionType, param);
   controls.add(context, actionType);
   likeTrack.add(context, actionType);
+  playlist.add(context, actionType, param);
 });
 
 // setactive: a página/perfil ficou visível novamente — redesenha now playing.
@@ -71,12 +75,14 @@ $UD.onSetActive((msg) => {
   nowPlaying.add(context, actionType, param);
   controls.add(context, actionType);
   likeTrack.add(context, actionType);
+  playlist.add(context, actionType, param);
 });
 
 // Configuração alterada no Property Inspector (ex.: quadrante do mosaico).
 $UD.onParamFromApp((msg) => {
   const { context, actionType, param } = normalize(msg);
   if (actionType === MOSAIC) nowPlaying.updateSettings(context, param);
+  else if (actionType === PLAYLIST) playlist.updateSettings(context, param);
 });
 
 $UD.onClear((msg) => {
@@ -88,6 +94,7 @@ $UD.onClear((msg) => {
     volumeDial.remove(context);
     controls.remove(context);
     likeTrack.remove(context);
+    playlist.remove(context);
   }
 });
 
@@ -98,6 +105,7 @@ function onTrigger(msg) {
   if (controls.handles(actionType)) controls.run(context, actionType);
   else if (volumeDial.handlesKey(actionType)) volumeDial.runKey(context, actionType);
   else if (likeTrack.handles(actionType)) likeTrack.run(context);
+  else if (playlist.handles(actionType)) playlist.run(context);
   else if (nowPlaying.handles(actionType)) nowPlaying.run(context);
 }
 // Apenas `run` — cada toque emite `run` E `keyup`; ouvir os dois dobraria o

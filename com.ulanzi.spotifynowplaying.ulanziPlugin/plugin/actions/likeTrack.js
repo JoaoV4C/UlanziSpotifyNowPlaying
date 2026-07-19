@@ -77,7 +77,6 @@ async function onTrack(trackId) {
 export async function run(context) {
   if (!tokenStore.isConnected()) {
     $UD.toast('Conecte-se ao Spotify primeiro.');
-    $UD.showAlert(context);
     return;
   }
   if (!currentTrackId) {
@@ -119,9 +118,8 @@ function reportError(context, e) {
   if (e instanceof RateLimitError) return; // cooldown: silencioso
   if (e instanceof RestrictionError) return;
   if (e instanceof NoActiveDeviceError) {
-    $UD.toast('Nenhum dispositivo Spotify ativo.');
+    $UD.toast('Abra o Spotify neste computador.');
   } else {
     $UD.toast(`Erro ao curtir: ${e.message}`);
   }
-  $UD.showAlert(context);
 }

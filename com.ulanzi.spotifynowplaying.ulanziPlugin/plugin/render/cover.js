@@ -12,9 +12,16 @@ import sharp from 'sharp';
 
 const KEY_SIZE = 126; // px por tecla (tamanho renderizado no display do Deck)
 
-// cache: coverUrl -> { single: string, quadrants: [string,string,string,string] }
-const cache = new Map();
-const MAX_CACHE = 8;
+// Caches separados por finalidade, cada um: coverUrl -> { single, quadrants }.
+// Separar evita que o churn de capas do "now playing" (muda a cada música)
+// despeje as capas das playlists (fixas), o que reintroduziria o flash.
+const caches = {
+  // Now playing muda de capa a cada faixa — poucas entradas bastam.
+  nowplaying: { store: new Map(), max: 8 },
+  // Playlists são fixas por-tecla; cache dimensionado para caber as playlists
+  // configuradas sem despejo pelo churn de músicas.
+  playlist: { store: new Map(), max: 12 },
+};
 
 /** Quadrantes na ordem do layout 2x2. */
 export const QUADRANTS = Object.freeze({
@@ -63,23 +70,28 @@ async function build(url) {
   return { single: single.toString('base64'), quadrants };
 }
 
-async function get(url) {
+async function get(url, group) {
   if (!url) throw new Error('URL da capa vazia.');
-  if (cache.has(url)) return cache.get(url);
+  const { store, max } = caches[group] || caches.nowplaying;
+  if (store.has(url)) return store.get(url);
 
   const result = await build(url);
 
-  cache.set(url, result);
-  if (cache.size > MAX_CACHE) {
+  store.set(url, result);
+  if (store.size > max) {
     // remove a entrada mais antiga (Map mantém ordem de inserção)
-    cache.delete(cache.keys().next().value);
+    store.delete(store.keys().next().value);
   }
   return result;
 }
 
-/** Base64 (PNG) da capa inteira, dimensionada para uma tecla. */
-export async function renderSingle(coverUrl) {
-  const { single } = await get(coverUrl);
+/**
+ * Base64 (PNG) da capa inteira, dimensionada para uma tecla.
+ * @param {string} coverUrl
+ * @param {'nowplaying'|'playlist'} [group='nowplaying'] cache a usar
+ */
+export async function renderSingle(coverUrl, group = 'nowplaying') {
+  const { single } = await get(coverUrl, group);
   return single;
 }
 
@@ -87,9 +99,10 @@ export async function renderSingle(coverUrl) {
  * Base64 (PNG) de um quadrante da capa (0..3), para a variante mosaico.
  * @param {string} coverUrl
  * @param {number} quadrant índice 0..3 (ver QUADRANTS)
+ * @param {'nowplaying'|'playlist'} [group='nowplaying'] cache a usar
  */
-export async function renderQuadrant(coverUrl, quadrant) {
-  const { quadrants } = await get(coverUrl);
+export async function renderQuadrant(coverUrl, quadrant, group = 'nowplaying') {
+  const { quadrants } = await get(coverUrl, group);
   const idx = Math.max(0, Math.min(3, Number(quadrant) || 0));
   return quadrants[idx];
 }

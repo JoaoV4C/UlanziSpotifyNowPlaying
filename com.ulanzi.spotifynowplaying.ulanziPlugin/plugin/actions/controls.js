@@ -44,8 +44,9 @@ export function handles(actionid) {
 export function add(context, actionType) {
   if (actionType !== PLAY_PAUSE) return;
   playPauseContexts.add(context);
-  // Aplica o estado conhecido imediatamente; se nenhum, assume tocando.
-  applyState(context, lastIsPlaying ?? true);
+  // Aplica o estado conhecido imediatamente; sem estado, assume pausado — a tecla
+  // mostra o ícone de PLAY por padrão até o poller informar o estado real.
+  applyState(context, lastIsPlaying ?? false);
   poller.ensureRunning(); // garante que o estado seja atualizado periodicamente
 }
 
@@ -82,7 +83,6 @@ export async function run(context, actionid) {
 
   if (!tokenStore.isConnected()) {
     $UD.toast('Conecte-se ao Spotify primeiro.');
-    $UD.showAlert(context);
     return;
   }
 
@@ -107,10 +107,9 @@ export async function run(context, actionid) {
       return;
     }
     if (e instanceof NoActiveDeviceError) {
-      $UD.toast('Nenhum dispositivo Spotify ativo. Abra o Spotify e toque algo.');
+      $UD.toast('Abra o Spotify neste computador para usar os comandos.');
     } else {
       $UD.toast(`Erro: ${e.message}`);
     }
-    $UD.showAlert(context);
   }
 }
