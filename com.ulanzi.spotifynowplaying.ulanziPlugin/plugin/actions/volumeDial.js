@@ -80,7 +80,6 @@ export async function press(context) {
 function ensureConnected(context) {
   if (!tokenStore.isConnected()) {
     $UD.toast('Conecte-se ao Spotify primeiro.');
-    $UD.showAlert(context);
     return false;
   }
   return true;
@@ -97,9 +96,8 @@ function reportError(context, e) {
     return;
   }
   if (e instanceof NoActiveDeviceError) {
-    $UD.toast('Nenhum dispositivo Spotify ativo.');
+    $UD.toast('Abra o Spotify neste computador.');
   } else {
     $UD.toast(`Erro de volume: ${e.message}`);
   }
-  $UD.showAlert(context);
 }
