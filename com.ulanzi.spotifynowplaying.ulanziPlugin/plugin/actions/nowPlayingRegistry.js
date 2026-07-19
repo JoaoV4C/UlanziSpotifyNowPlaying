@@ -2,6 +2,7 @@
 // poller compartilhado. Ao mudar a faixa, re-renderiza e faz push para cada
 // instância ativa. As teclas de controle (play/pause etc.) não passam por aqui.
 
+import { spawn } from 'node:child_process';
 import * as api from '../spotify/api.js';
 import { NoActiveDeviceError, RateLimitError } from '../spotify/api.js';
 import * as cover from '../render/cover.js';
@@ -80,6 +81,42 @@ export function updateSettings(context, settings = {}) {
 export function remove(context) {
   instances.delete(context);
   if (activeConsumers() === 0) stopPolling();
+}
+
+/** true se a ação abre o Spotify ao apertar (Now Playing single ou mosaico). */
+export function handles(actionType) {
+  return actionType === NOW_PLAYING || actionType === MOSAIC;
+}
+
+/**
+ * Toque na tecla Now Playing: abre/foca o app desktop do Spotify.
+ * Usa o protocolo `spotify:` via child_process do Node — o openUrl do Studio
+ * abriria no navegador em vez do app.
+ */
+export function run() {
+  openSpotifyApp();
+}
+
+function openSpotifyApp() {
+  const uri = 'spotify:';
+  try {
+    let child;
+    if (process.platform === 'win32') {
+      // 'start' é interno do cmd; o primeiro "" é o título da janela.
+      child = spawn('cmd', ['/c', 'start', '', uri], { detached: true, stdio: 'ignore' });
+    } else if (process.platform === 'darwin') {
+      child = spawn('open', [uri], { detached: true, stdio: 'ignore' });
+    } else {
+      child = spawn('xdg-open', [uri], { detached: true, stdio: 'ignore' });
+    }
+    // Erros de spawn são assíncronos (ex.: comando não encontrado no PATH);
+    // sem este handler o processo poderia cair com um erro não tratado.
+    child.on('error', () => $UD.openUrl('https://open.spotify.com'));
+    child.unref();
+  } catch {
+    // Fallback: pede ao Studio para abrir (abre no navegador, mas melhor que nada).
+    $UD.openUrl('https://open.spotify.com');
+  }
 }
 
 function ensurePolling() {
