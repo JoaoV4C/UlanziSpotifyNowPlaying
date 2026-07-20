@@ -7,6 +7,7 @@ import './diaglog.js'; // registra captura de erros não tratados
 
 import * as tokenStore from './spotify/tokenStore.js';
 import * as auth from './spotify/auth.js';
+import * as api from './spotify/api.js';
 import * as nowPlaying from './actions/nowPlayingRegistry.js';
 import * as controls from './actions/controls.js';
 import * as volumeDial from './actions/volumeDial.js';
@@ -158,6 +159,9 @@ $UD.onSendToPlugin(async (msg) => {
       break;
     case 'logout':
       tokenStore.clear();
+      // O cooldown de rate limit era da sessão anterior; mantê-lo bloquearia uma
+      // nova conta/app que talvez não esteja limitada.
+      api.clearRateLimit();
       broadcastAuthStatus();
       break;
     default:
