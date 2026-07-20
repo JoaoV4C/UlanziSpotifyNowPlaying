@@ -146,6 +146,20 @@
         { "Image": "assets/icons/shuffleOn.png" }
       ],
       "SupportedInMultiActions": true
+    },
+    {
+      "Name": "Repetir",
+      "Icon": "assets/icons/repeat.png",
+      "PropertyInspectorPath": "property-inspector/status/inspector.html",
+      "Tooltip": "Alterna a repetição: desligado → repetir tudo → repetir a faixa.",
+      "UUID": "com.ulanzi.ulanzistudio.spotifynowplaying.repeat",
+      "Controllers": ["Keypad"],
+      "States": [
+        { "Image": "assets/icons/repeat.png" },
+        { "Image": "assets/icons/repeatOn.png" },
+        { "Image": "assets/icons/repeatTrack.png" }
+      ],
+      "SupportedInMultiActions": true
     }
   ],
   "OS": [
