@@ -11,6 +11,8 @@ playlists e abre o app — tudo direto das teclas e do dial.
 > Main service em **Node.js v20**, integração via **Spotify Web API** com **OAuth
 > Authorization Code + PKCE**. Controles de playback exigem conta **Premium**.
 
+![O plugin no Ulanzi Studio: as ações na barra lateral e o Property Inspector de uma tecla Play / Pause](docs/images/studio-english-ui.png)
+
 ## Ações
 
 | Ação | Controle | Descrição |

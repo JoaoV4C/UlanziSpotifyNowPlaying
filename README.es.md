@@ -12,6 +12,8 @@ desde las teclas y el dial.
 > Servicio principal en **Node.js v20**, integrado mediante la **Spotify Web API** con **OAuth
 > Authorization Code + PKCE**. Los controles de reproducción requieren una cuenta **Premium**.
 
+![El plugin en Ulanzi Studio: las acciones en la barra lateral y el Property Inspector de una tecla Reproducir / Pausar](docs/images/studio-english-ui.png)
+
 ## Acciones
 
 | Acción | Control | Descripción |
