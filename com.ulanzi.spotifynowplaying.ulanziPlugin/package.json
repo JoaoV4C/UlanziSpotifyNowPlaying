@@ -5,7 +5,8 @@
   "type": "module",
   "main": "plugin/app.js",
   "scripts": {
-    "start": "node plugin/app.js"
+    "start": "node plugin/app.js",
+    "test": "node --test test/*.test.js"
   },
   "engines": {
     "node": ">=20"

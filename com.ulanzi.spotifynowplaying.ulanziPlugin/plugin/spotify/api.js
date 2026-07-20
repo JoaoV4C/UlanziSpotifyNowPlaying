@@ -125,9 +125,12 @@ async function request(path, opts = {}, retry = true, allowActivate = true) {
     throw new RateLimitError(retryAfterMs);
   }
 
-  // Primeira resposta não-429 depois de um bloqueio: registra a liberação.
-  if (blockedUntil > 0 && resp.status !== 429) {
-    logLine('RATE_LIMIT liberado — requisições normalizadas.');
+  // O cooldown só termina quando o tempo do Retry-After expira (o guard no topo
+  // já barra as requisições até lá). Zerá-lo por causa de uma resposta OK — como
+  // as de /devices, que podem passar — fazia o plugin voltar a bater na API e o
+  // Spotify ESTENDER o bloqueio.
+  if (blockedUntil > 0 && Date.now() >= blockedUntil) {
+    logLine('RATE_LIMIT liberado — cooldown expirou.');
     blockedUntil = 0;
     saveBlockedUntil();
   }
