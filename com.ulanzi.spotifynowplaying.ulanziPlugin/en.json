@@ -2,12 +2,19 @@
   "Name": "Spotify Now Playing",
   "Description": "Shows the current Spotify track (cover + title) and controls playback right from the Ulanzi Deck.",
   "Actions": [
-    { "Name": "Now Playing", "Tooltip": "Shows the cover art and title of the current track." },
+    { "Name": "Now Playing", "Tooltip": "Shows the cover art and title of the current track. Press to open Spotify." },
     { "Name": "Now Playing (2x2 Mosaic)", "Tooltip": "One quadrant of the cover. Use four 2x2 keys to form the full image." },
     { "Name": "Play / Pause", "Tooltip": "Toggles play and pause." },
     { "Name": "Next track", "Tooltip": "Skips to the next track." },
     { "Name": "Previous track", "Tooltip": "Goes back to the previous track." },
-    { "Name": "Volume (dial)", "Tooltip": "Adjust volume with the dial. Press to mute." }
+    { "Name": "Volume (dial)", "Tooltip": "Adjust volume with the dial. Press to mute." },
+    { "Name": "Volume up", "Tooltip": "Raises the volume by 10%." },
+    { "Name": "Volume down", "Tooltip": "Lowers the volume by 10%." },
+    { "Name": "Like", "Tooltip": "Likes or unlikes the current track. Shows ✓ when already liked." },
+    { "Name": "Playlist", "Tooltip": "Shortcut to play a playlist. Shows its cover art and name." },
+    { "Name": "Shuffle", "Tooltip": "Turns shuffle on/off. The icon shows the current state." },
+    { "Name": "Repeat", "Tooltip": "Cycles repeat: off → repeat all → repeat track." },
+    { "Name": "Mute", "Tooltip": "Mutes Spotify; press again to restore the previous volume." }
   ],
   "Localization": {
     "Quadrante": "Quadrant",
@@ -18,10 +25,18 @@
     "Client ID do Spotify": "Spotify Client ID",
     "Conectar ao Spotify": "Connect to Spotify",
     "Sair": "Log out",
+    "URL ou URI da playlist": "Playlist URL or URI",
     "Redirect URI (registre no app do Spotify):": "Redirect URI (register it in your Spotify app):",
     "Coloque as 4 ações (um quadrante cada) em teclas 2×2 adjacentes para formar a capa completa.": "Place the 4 actions (one quadrant each) on adjacent 2×2 keys to form the full cover.",
     "Mostra a capa e o título da faixa atual do Spotify, atualizando automaticamente.": "Shows the current Spotify track's cover and title, updating automatically.",
     "Controle de playback do Spotify. Requer conta Premium e um dispositivo ativo.": "Spotify playback control. Requires a Premium account and an active device.",
-    "Gire o dial para ajustar o volume; pressione para mutar/desmutar. Requer Premium e dispositivo ativo.": "Turn the dial to adjust volume; press to mute/unmute. Requires Premium and an active device."
+    "Gire o dial para ajustar o volume; pressione para mutar/desmutar. Requer Premium e dispositivo ativo.": "Turn the dial to adjust volume; press to mute/unmute. Requires Premium and an active device.",
+    "Conectado ao Spotify ✓": "Connected to Spotify ✓",
+    "Aguardando login no navegador…": "Waiting for login in the browser…",
+    "Não conectado": "Not connected",
+    "Informe o Client ID primeiro.": "Enter the Client ID first.",
+    "Conectando…": "Connecting…",
+    "Erro:": "Error:",
+    "desconhecido": "unknown"
   }
 }

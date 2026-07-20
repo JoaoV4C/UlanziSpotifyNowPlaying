@@ -2,7 +2,7 @@
   "Version": "0.28.13",
   "Author": "JoaoV4C",
   "Name": "Spotify Now Playing",
-  "Description": "Exibe a faixa atual do Spotify (capa + título) e controla o playback direto do Ulanzi Deck.",
+  "Description": "Shows the current Spotify track (cover + title) and controls playback right from the Ulanzi Deck.",
   "Icon": "assets/icons/pluginIcon.png",
   "Category": "Spotify Now Playing",
   "CategoryIcon": "assets/icons/category.png",
@@ -16,7 +16,7 @@
       "Name": "Now Playing",
       "Icon": "assets/icons/spotifyLogo.png",
       "PropertyInspectorPath": "property-inspector/nowPlaying/inspector.html",
-      "Tooltip": "Mostra a capa e o título da faixa atual. Aperte para abrir o Spotify.",
+      "Tooltip": "Shows the cover art and title of the current track. Press to open Spotify.",
       "UUID": "com.ulanzi.ulanzistudio.spotifynowplaying.nowPlaying",
       "Controllers": ["Keypad"],
       "States": [
@@ -25,10 +25,10 @@
       "SupportedInMultiActions": false
     },
     {
-      "Name": "Now Playing (Mosaico 2x2)",
+      "Name": "Now Playing (2x2 Mosaic)",
       "Icon": "assets/icons/mosaic.png",
       "PropertyInspectorPath": "property-inspector/mosaic/inspector.html",
-      "Tooltip": "Um quadrante da capa. Use 4 teclas 2x2 para formar a imagem completa.",
+      "Tooltip": "One quadrant of the cover. Use four 2x2 keys to form the full image.",
       "UUID": "com.ulanzi.ulanzistudio.spotifynowplaying.mosaic",
       "Controllers": ["Keypad"],
       "States": [
@@ -40,7 +40,7 @@
       "Name": "Play / Pause",
       "Icon": "assets/icons/playPause.png",
       "PropertyInspectorPath": "property-inspector/status/inspector.html",
-      "Tooltip": "Alterna entre tocar e pausar.",
+      "Tooltip": "Toggles play and pause.",
       "UUID": "com.ulanzi.ulanzistudio.spotifynowplaying.playPause",
       "Controllers": ["Keypad"],
       "States": [
@@ -50,10 +50,10 @@
       "SupportedInMultiActions": false
     },
     {
-      "Name": "Próxima faixa",
+      "Name": "Next track",
       "Icon": "assets/icons/next.png",
       "PropertyInspectorPath": "property-inspector/status/inspector.html",
-      "Tooltip": "Pula para a próxima faixa.",
+      "Tooltip": "Skips to the next track.",
       "UUID": "com.ulanzi.ulanzistudio.spotifynowplaying.nextTrack",
       "Controllers": ["Keypad"],
       "States": [
@@ -62,10 +62,10 @@
       "SupportedInMultiActions": true
     },
     {
-      "Name": "Faixa anterior",
+      "Name": "Previous track",
       "Icon": "assets/icons/prev.png",
       "PropertyInspectorPath": "property-inspector/status/inspector.html",
-      "Tooltip": "Volta para a faixa anterior.",
+      "Tooltip": "Goes back to the previous track.",
       "UUID": "com.ulanzi.ulanzistudio.spotifynowplaying.prevTrack",
       "Controllers": ["Keypad"],
       "States": [
@@ -77,7 +77,7 @@
       "Name": "Volume (dial)",
       "Icon": "assets/icons/volume.png",
       "PropertyInspectorPath": "property-inspector/volume/inspector.html",
-      "Tooltip": "Ajusta o volume com o dial. Pressione para mutar.",
+      "Tooltip": "Adjust volume with the dial. Press to mute.",
       "UUID": "com.ulanzi.ulanzistudio.spotifynowplaying.volumeDial",
       "Controllers": ["Encoder"],
       "States": [
@@ -86,10 +86,10 @@
       "SupportedInMultiActions": false
     },
     {
-      "Name": "Aumentar volume",
+      "Name": "Volume up",
       "Icon": "assets/icons/volumeUp.png",
       "PropertyInspectorPath": "property-inspector/status/inspector.html",
-      "Tooltip": "Aumenta o volume em 10%.",
+      "Tooltip": "Raises the volume by 10%.",
       "UUID": "com.ulanzi.ulanzistudio.spotifynowplaying.volumeUp",
       "Controllers": ["Keypad"],
       "States": [
@@ -98,10 +98,10 @@
       "SupportedInMultiActions": true
     },
     {
-      "Name": "Diminuir volume",
+      "Name": "Volume down",
       "Icon": "assets/icons/volumeDown.png",
       "PropertyInspectorPath": "property-inspector/status/inspector.html",
-      "Tooltip": "Diminui o volume em 10%.",
+      "Tooltip": "Lowers the volume by 10%.",
       "UUID": "com.ulanzi.ulanzistudio.spotifynowplaying.volumeDown",
       "Controllers": ["Keypad"],
       "States": [
@@ -110,10 +110,10 @@
       "SupportedInMultiActions": true
     },
     {
-      "Name": "Curtir",
+      "Name": "Like",
       "Icon": "assets/icons/likeAdd.png",
       "PropertyInspectorPath": "property-inspector/status/inspector.html",
-      "Tooltip": "Curte ou descurte a faixa atual. Mostra ✓ quando já curtida.",
+      "Tooltip": "Likes or unlikes the current track. Shows ✓ when already liked.",
       "UUID": "com.ulanzi.ulanzistudio.spotifynowplaying.like",
       "Controllers": ["Keypad"],
       "States": [
@@ -126,7 +126,7 @@
       "Name": "Playlist",
       "Icon": "assets/icons/playlist.png",
       "PropertyInspectorPath": "property-inspector/playlist/inspector.html",
-      "Tooltip": "Atalho para tocar uma playlist. Mostra a capa e o nome.",
+      "Tooltip": "Shortcut to play a playlist. Shows its cover art and name.",
       "UUID": "com.ulanzi.ulanzistudio.spotifynowplaying.playlist",
       "Controllers": ["Keypad"],
       "States": [
@@ -135,10 +135,10 @@
       "SupportedInMultiActions": false
     },
     {
-      "Name": "Aleatório",
+      "Name": "Shuffle",
       "Icon": "assets/icons/shuffle.png",
       "PropertyInspectorPath": "property-inspector/status/inspector.html",
-      "Tooltip": "Liga/desliga o modo aleatório. O ícone mostra o estado atual.",
+      "Tooltip": "Turns shuffle on/off. The icon shows the current state.",
       "UUID": "com.ulanzi.ulanzistudio.spotifynowplaying.shuffle",
       "Controllers": ["Keypad"],
       "States": [
@@ -148,10 +148,10 @@
       "SupportedInMultiActions": true
     },
     {
-      "Name": "Repetir",
+      "Name": "Repeat",
       "Icon": "assets/icons/repeat.png",
       "PropertyInspectorPath": "property-inspector/status/inspector.html",
-      "Tooltip": "Alterna a repetição: desligado → repetir tudo → repetir a faixa.",
+      "Tooltip": "Cycles repeat: off → repeat all → repeat track.",
       "UUID": "com.ulanzi.ulanzistudio.spotifynowplaying.repeat",
       "Controllers": ["Keypad"],
       "States": [
@@ -162,10 +162,10 @@
       "SupportedInMultiActions": true
     },
     {
-      "Name": "Mudo",
+      "Name": "Mute",
       "Icon": "assets/icons/mute.png",
       "PropertyInspectorPath": "property-inspector/status/inspector.html",
-      "Tooltip": "Silencia o Spotify; aperte de novo para restaurar o volume anterior.",
+      "Tooltip": "Mutes Spotify; press again to restore the previous volume.",
       "UUID": "com.ulanzi.ulanzistudio.spotifynowplaying.mute",
       "Controllers": ["Keypad"],
       "States": [

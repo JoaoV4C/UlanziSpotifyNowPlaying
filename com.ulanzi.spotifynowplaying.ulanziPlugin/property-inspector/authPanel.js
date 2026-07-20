@@ -13,8 +13,11 @@ function initAuthPanel() {
 
   if (!$clientId || !$connect) return; // PI sem painel de auth
 
+  // As mensagens de status são criadas em JS, então não passam pelo [data-localize]
+  // do SDK — traduzimos aqui com $UD.t(), que devolve a própria chave (o texto em
+  // português) quando o idioma não tem tradução.
   function setStatus(text, cls) {
-    $status.textContent = text;
+    $status.textContent = $UD.t(text);
     $status.className = 'auth-status ' + (cls || '');
   }
 
@@ -34,7 +37,8 @@ function initAuthPanel() {
         setStatus('Aguardando login no navegador…', 'pending');
         break;
       case 'error':
-        setStatus('Erro: ' + (p.message || 'desconhecido'), 'error');
+        // Só o prefixo é traduzível; a mensagem vem do plugin/da API do Spotify.
+        setStatus($UD.t('Erro:') + ' ' + (p.message || $UD.t('desconhecido')), 'error');
         break;
       default:
         setStatus('Não conectado', '');

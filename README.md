@@ -1,8 +1,12 @@
 # Spotify Now Playing — Plugin Ulanzi Stream Deck
 
+[![Português](https://img.shields.io/badge/Português-1DB954?style=for-the-badge)](README.md)
+[![English](https://img.shields.io/badge/English-555?style=for-the-badge)](README.en.md)
+[![Español](https://img.shields.io/badge/Español-555?style=for-the-badge)](README.es.md)
+
 Plugin para o **Ulanzi Stream Deck (D200/D201)** que mostra a faixa tocando no Spotify
-(capa + título), controla o playback, curte músicas, dispara playlists e abre o app —
-tudo direto das teclas e do dial.
+(capa + título), controla o playback, curte músicas, alterna aleatório/repetição, dispara
+playlists e abre o app — tudo direto das teclas e do dial.
 
 > Main service em **Node.js v20**, integração via **Spotify Web API** com **OAuth
 > Authorization Code + PKCE**. Controles de playback exigem conta **Premium**.
@@ -19,6 +23,9 @@ tudo direto das teclas e do dial.
 | **Volume (dial)** | Encoder | Gira para ajustar o volume; pressiona para mutar/desmutar. |
 | **Aumentar volume** | Tecla | Sobe o volume em 10% (para o D200 sem dial). |
 | **Diminuir volume** | Tecla | Abaixa o volume em 10%. |
+| **Mudo** | Tecla | Silencia e, ao apertar de novo, **restaura o volume anterior**. O ícone acompanha o volume real — mutar pelo app do Spotify também atualiza a tecla. |
+| **Aleatório** | Tecla | Liga/desliga o modo aleatório. O ícone reflete o estado atual. |
+| **Repetir** | Tecla | Alterna os três modos do Spotify: desligado → repetir contexto → repetir faixa. Cada modo tem seu ícone. |
 | **Curtir** | Tecla | Curte/descurte a faixa atual. Mostra **✓** quando já curtida, **+** quando não — verifica o estado ao trocar de faixa. |
 | **Playlist** | Tecla | Atalho para uma playlist: mostra capa + nome e toca ao apertar. Configure a URL/URI no Property Inspector. |
 
@@ -77,7 +84,9 @@ Ulanzi Studio (ou use o simulador — ver abaixo).
 - **Now Playing / Mosaico**: toque algo no Spotify; a capa e o título aparecem e atualizam ao
   trocar de faixa. No mosaico, coloque as 4 teclas 2×2 adjacentes e escolha o quadrante de cada
   uma (Superior esq., Superior dir., Inferior esq., Inferior dir.).
-- **Controles**: play/pause, próxima, anterior, volume (dial ou botões ±10%).
+- **Controles**: play/pause, próxima, anterior, volume (dial ou botões ±10%), mudo.
+- **Aleatório / Repetir**: alternam o modo e mostram o estado atual no ícone; acompanham também
+  mudanças feitas pelo app do Spotify.
 - **Curtir**: aperte para salvar/remover a faixa atual da sua biblioteca.
 - **Playlist**: cole a URL da playlist no Property Inspector; a tecla mostra a capa e o nome, e
   toca a playlist ao ser apertada.
@@ -112,11 +121,21 @@ com.ulanzi.spotifynowplaying.ulanziPlugin/
 │   │   ├── api.js                # endpoints: player, biblioteca, playlists, dispositivos
 │   │   └── tokenStore.js         # tokens via Global Settings + refresh
 │   ├── render/cover.js           # baixa/redimensiona/fatia a capa (base64, com cache)
-│   └── actions/                  # nowPlayingRegistry, controls, volumeDial, likeTrack, playlist
+│   └── actions/                  # nowPlayingRegistry (poller + observers), controls,
+│                                 # volumeDial, likeTrack, playlist, shuffleToggle,
+│                                 # repeatMode, muteToggle
 ├── property-inspector/           # UIs de configuração (HTML)
 ├── libs/                         # SDK common-html (para os PIs)
 ├── assets/icons/                 # ícones do plugin e das ações
+├── test/                         # testes de regressão (node --test)
 └── en.json / pt_PT.json          # localização
+```
+
+Rodar os testes:
+
+```bash
+cd com.ulanzi.spotifynowplaying.ulanziPlugin
+npm test
 ```
 
 ## Observações
@@ -124,9 +143,13 @@ com.ulanzi.spotifynowplaying.ulanziPlugin/
 - **Controle de playback exige um dispositivo ativo.** Se o Spotify estiver aberto neste PC mas
   parado, o plugin ativa o dispositivo automaticamente ao dar um comando. Se não houver Spotify
   aberto neste PC, aparece um aviso ("Abra o Spotify neste computador").
-- O poller de "Now Playing" roda a cada ~5 s; a capa é cacheada por URL para respeitar os rate
-  limits do Spotify.
-- Ao atingir o rate limit (429), o plugin respeita o `Retry-After` e não insiste até liberar.
+- O poller de "Now Playing" roda a cada **2 s** e é **compartilhado**: todas as ações de estado
+  (aleatório, repetir, mudo, curtir) se atualizam a partir dele, sem requisições próprias. A capa
+  é cacheada por URL.
+- **Rate limit (429).** O plugin respeita o `Retry-After` e bloqueia **toda** requisição até o
+  prazo expirar — insistir faz o Spotify *estender* a punição. O cooldown é gravado em
+  `plugin/ratelimit.json` e sobrevive a reinícios; sair da conta o descarta (o bloqueio era da
+  sessão anterior). O log fica em `plugin/error.log`.
 
 ## Licença
 
