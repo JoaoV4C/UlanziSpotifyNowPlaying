@@ -191,7 +191,8 @@ async function readError(resp) {
  *   title: string,
  *   artist: string,
  *   coverUrl: string,
- *   volumePercent: number|null
+ *   volumePercent: number|null,
+ *   shuffle: boolean
  * }>}
  */
 export async function getPlaybackState() {
@@ -207,6 +208,7 @@ export async function getPlaybackState() {
     volumePercent:
       typeof data.device?.volume_percent === 'number' ? data.device.volume_percent : null,
     progressMs: typeof data.progress_ms === 'number' ? data.progress_ms : 0,
+    shuffle: Boolean(data.shuffle_state),
   };
 }
 
@@ -296,6 +298,19 @@ export async function togglePlayPause() {
 
 export async function next() {
   await request('/me/player/next', { method: 'POST' });
+}
+
+/** Liga/desliga o modo aleatório (shuffle) no dispositivo ativo. */
+export async function setShuffle(state) {
+  await request(`/me/player/shuffle?state=${state ? 'true' : 'false'}`, { method: 'PUT' });
+}
+
+/** Alterna o shuffle conforme o estado atual. Retorna o novo estado. */
+export async function toggleShuffle() {
+  const playback = await getPlaybackState();
+  const next = !(playback && playback.shuffle);
+  await setShuffle(next);
+  return next;
 }
 
 /** Reinicia a faixa atual (volta ao início). */
