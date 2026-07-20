@@ -133,6 +133,19 @@
         { "Image": "assets/icons/playlist.png" }
       ],
       "SupportedInMultiActions": false
+    },
+    {
+      "Name": "Aleatório",
+      "Icon": "assets/icons/shuffle.png",
+      "PropertyInspectorPath": "property-inspector/status/inspector.html",
+      "Tooltip": "Liga/desliga o modo aleatório. O ícone mostra o estado atual.",
+      "UUID": "com.ulanzi.ulanzistudio.spotifynowplaying.shuffle",
+      "Controllers": ["Keypad"],
+      "States": [
+        { "Image": "assets/icons/shuffle.png" },
+        { "Image": "assets/icons/shuffleOn.png" }
+      ],
+      "SupportedInMultiActions": true
     }
   ],
   "OS": [
