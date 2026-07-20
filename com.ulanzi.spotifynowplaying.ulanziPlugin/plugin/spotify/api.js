@@ -192,7 +192,8 @@ async function readError(resp) {
  *   artist: string,
  *   coverUrl: string,
  *   volumePercent: number|null,
- *   shuffle: boolean
+ *   shuffle: boolean,
+ *   repeatMode: 'off'|'context'|'track'
  * }>}
  */
 export async function getPlaybackState() {
@@ -209,6 +210,8 @@ export async function getPlaybackState() {
       typeof data.device?.volume_percent === 'number' ? data.device.volume_percent : null,
     progressMs: typeof data.progress_ms === 'number' ? data.progress_ms : 0,
     shuffle: Boolean(data.shuffle_state),
+    // 'off' | 'context' (playlist/álbum) | 'track' (faixa atual)
+    repeatMode: typeof data.repeat_state === 'string' ? data.repeat_state : 'off',
   };
 }
 
@@ -310,6 +313,26 @@ export async function toggleShuffle() {
   const playback = await getPlaybackState();
   const next = !(playback && playback.shuffle);
   await setShuffle(next);
+  return next;
+}
+
+/**
+ * Define o modo de repetição.
+ * @param {'off'|'context'|'track'} mode
+ */
+export async function setRepeat(mode) {
+  await request(`/me/player/repeat?state=${mode}`, { method: 'PUT' });
+}
+
+// Ciclo do botão, igual ao app do Spotify: desligado → repetir tudo → repetir faixa.
+const REPEAT_CYCLE = { off: 'context', context: 'track', track: 'off' };
+
+/** Avança o modo de repetição no ciclo. Retorna o novo modo. */
+export async function cycleRepeat() {
+  const playback = await getPlaybackState();
+  const current = playback?.repeatMode || 'off';
+  const next = REPEAT_CYCLE[current] || 'context';
+  await setRepeat(next);
   return next;
 }
 
