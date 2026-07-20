@@ -160,6 +160,19 @@
         { "Image": "assets/icons/repeatTrack.png" }
       ],
       "SupportedInMultiActions": true
+    },
+    {
+      "Name": "Mudo",
+      "Icon": "assets/icons/mute.png",
+      "PropertyInspectorPath": "property-inspector/status/inspector.html",
+      "Tooltip": "Silencia o Spotify; aperte de novo para restaurar o volume anterior.",
+      "UUID": "com.ulanzi.ulanzistudio.spotifynowplaying.mute",
+      "Controllers": ["Keypad"],
+      "States": [
+        { "Image": "assets/icons/mute.png" },
+        { "Image": "assets/icons/muteOn.png" }
+      ],
+      "SupportedInMultiActions": true
     }
   ],
   "OS": [
