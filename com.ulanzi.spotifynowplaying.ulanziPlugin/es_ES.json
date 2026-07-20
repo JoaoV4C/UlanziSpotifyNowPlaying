@@ -1,0 +1,42 @@
+{
+  "Name": "Spotify Now Playing",
+  "Description": "Muestra la canción actual de Spotify (carátula + título) y controla la reproducción desde el Ulanzi Deck.",
+  "Actions": [
+    { "Name": "Now Playing", "Tooltip": "Muestra la carátula y el título de la canción actual. Pulsa para abrir Spotify." },
+    { "Name": "Now Playing (Mosaico 2x2)", "Tooltip": "Un cuadrante de la carátula. Usa 4 teclas 2x2 para formar la imagen completa." },
+    { "Name": "Reproducir / Pausar", "Tooltip": "Alterna entre reproducir y pausar." },
+    { "Name": "Siguiente pista", "Tooltip": "Salta a la siguiente pista." },
+    { "Name": "Pista anterior", "Tooltip": "Vuelve a la pista anterior." },
+    { "Name": "Volumen (dial)", "Tooltip": "Ajusta el volumen con el dial. Pulsa para silenciar." },
+    { "Name": "Subir volumen", "Tooltip": "Sube el volumen un 10%." },
+    { "Name": "Bajar volumen", "Tooltip": "Baja el volumen un 10%." },
+    { "Name": "Me gusta", "Tooltip": "Añade o quita la canción actual de tus favoritos. Muestra ✓ si ya es favorita." },
+    { "Name": "Lista de reproducción", "Tooltip": "Acceso directo para reproducir una lista. Muestra su carátula y su nombre." },
+    { "Name": "Aleatorio", "Tooltip": "Activa/desactiva el modo aleatorio. El icono muestra el estado actual." },
+    { "Name": "Repetir", "Tooltip": "Alterna la repetición: desactivado → repetir todo → repetir pista." },
+    { "Name": "Silenciar", "Tooltip": "Silencia Spotify; pulsa de nuevo para restaurar el volumen anterior." }
+  ],
+  "Localization": {
+    "Quadrante": "Cuadrante",
+    "Superior esquerdo": "Superior izquierdo",
+    "Superior direito": "Superior derecho",
+    "Inferior esquerdo": "Inferior izquierdo",
+    "Inferior direito": "Inferior derecho",
+    "Client ID do Spotify": "Client ID de Spotify",
+    "Conectar ao Spotify": "Conectar con Spotify",
+    "Sair": "Cerrar sesión",
+    "URL ou URI da playlist": "URL o URI de la lista de reproducción",
+    "Redirect URI (registre no app do Spotify):": "Redirect URI (regístralo en tu app de Spotify):",
+    "Coloque as 4 ações (um quadrante cada) em teclas 2×2 adjacentes para formar a capa completa.": "Coloca las 4 acciones (un cuadrante cada una) en teclas 2×2 adyacentes para formar la carátula completa.",
+    "Mostra a capa e o título da faixa atual do Spotify, atualizando automaticamente.": "Muestra la carátula y el título de la canción actual de Spotify, con actualización automática.",
+    "Controle de playback do Spotify. Requer conta Premium e um dispositivo ativo.": "Control de reproducción de Spotify. Requiere cuenta Premium y un dispositivo activo.",
+    "Gire o dial para ajustar o volume; pressione para mutar/desmutar. Requer Premium e dispositivo ativo.": "Gira el dial para ajustar el volumen; pulsa para silenciar o restaurar. Requiere Premium y un dispositivo activo.",
+    "Conectado ao Spotify ✓": "Conectado a Spotify ✓",
+    "Aguardando login no navegador…": "Esperando el inicio de sesión en el navegador…",
+    "Não conectado": "No conectado",
+    "Informe o Client ID primeiro.": "Introduce primero el Client ID.",
+    "Conectando…": "Conectando…",
+    "Erro:": "Error:",
+    "desconhecido": "desconocido"
+  }
+}
