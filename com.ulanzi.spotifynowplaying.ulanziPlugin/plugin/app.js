@@ -14,6 +14,7 @@ import * as likeTrack from './actions/likeTrack.js';
 import * as playlist from './actions/playlist.js';
 import * as shuffleToggle from './actions/shuffleToggle.js';
 import * as repeatMode from './actions/repeatMode.js';
+import * as muteToggle from './actions/muteToggle.js';
 
 const PLUGIN_UUID = 'com.ulanzi.ulanzistudio.spotifynowplaying';
 const MOSAIC = 'com.ulanzi.ulanzistudio.spotifynowplaying.mosaic';
@@ -41,6 +42,7 @@ function setupOnce() {
   playlist.init($UD);
   shuffleToggle.init($UD);
   repeatMode.init($UD);
+  muteToggle.init($UD);
 
   // Resultado do fluxo de login → avisa qualquer Property Inspector aberto.
   auth.onResult({
@@ -73,6 +75,7 @@ $UD.onAdd((msg) => {
   playlist.add(context, actionType, param);
   shuffleToggle.add(context, actionType);
   repeatMode.add(context, actionType);
+  muteToggle.add(context, actionType);
 });
 
 // setactive: a página/perfil ficou visível novamente — redesenha now playing.
@@ -84,6 +87,7 @@ $UD.onSetActive((msg) => {
   playlist.add(context, actionType, param);
   shuffleToggle.add(context, actionType);
   repeatMode.add(context, actionType);
+  muteToggle.add(context, actionType);
 });
 
 // Configuração alterada no Property Inspector (ex.: quadrante do mosaico).
@@ -105,6 +109,7 @@ $UD.onClear((msg) => {
     playlist.remove(context);
     shuffleToggle.remove(context);
     repeatMode.remove(context);
+    muteToggle.remove(context);
   }
 });
 
@@ -118,6 +123,7 @@ function onTrigger(msg) {
   else if (playlist.handles(actionType)) playlist.run(context);
   else if (shuffleToggle.handles(actionType)) shuffleToggle.run(context);
   else if (repeatMode.handles(actionType)) repeatMode.run(context);
+  else if (muteToggle.handles(actionType)) muteToggle.run(context);
   else if (nowPlaying.handles(actionType)) nowPlaying.run(context);
 }
 // Apenas `run` — cada toque emite `run` E `keyup`; ouvir os dois dobraria o
