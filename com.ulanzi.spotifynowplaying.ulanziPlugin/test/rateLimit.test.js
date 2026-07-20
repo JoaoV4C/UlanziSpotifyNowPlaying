@@ -209,6 +209,31 @@ test('Retry-After ausente usa um fallback conservador', async () => {
   assert.ok(remaining <= 5000, `fallback deve ser curto, veio ${remaining}`);
 });
 
+test('logout descarta o cooldown (permite entrar com outra conta/app)', async () => {
+  // O bloqueio é da sessão anterior. Sem isso, trocar de conta — ou de Client ID,
+  // já que o limite do Spotify é por aplicação — deixaria o plugin inoperante até
+  // o Retry-After antigo expirar, mesmo com uma sessão nova sem restrição.
+  clearBlockFile();
+  const { api, calls } = await loadApi(() => tooManyRequests(3600));
+
+  await assert.rejects(() => api.getPlaybackState(), { name: 'RateLimitError' });
+  assert.ok(api.rateLimitRemainingMs() > 0, 'deve estar bloqueado');
+
+  api.clearRateLimit(); // é o que o logout chama
+
+  assert.equal(api.rateLimitRemainingMs(), 0, 'o logout deve descartar o cooldown');
+  assert.deepEqual(
+    JSON.parse(fs.readFileSync(BLOCK_FILE, 'utf8')),
+    { blockedUntil: 0 },
+    'o arquivo persistido também deve ser zerado'
+  );
+
+  // E a próxima requisição volta a sair normalmente.
+  calls.length = 0;
+  await assert.rejects(() => api.getPlaybackState(), { name: 'RateLimitError' }); // servidor ainda responde 429
+  assert.equal(calls.length, 1, 'após o logout a requisição deve ir à rede de novo');
+});
+
 test('operação normal (sem 429) não cria bloqueio', async () => {
   clearBlockFile();
   const { api, calls } = await loadApi(() => playerOk());
