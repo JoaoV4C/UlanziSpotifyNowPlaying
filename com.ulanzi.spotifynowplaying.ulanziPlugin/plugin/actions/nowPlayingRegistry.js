@@ -21,6 +21,12 @@ let timer = null;
 let lastTrackId = null;
 let lastState = null; // último estado observado (para forçar re-render em novas teclas)
 
+// Leituras vazias consecutivas do /me/player. A API responde vazio de forma
+// intermitente com a música tocando, então só tratamos como "parado" depois de
+// algumas seguidas (~3 ticks = 6 s).
+let emptyReads = 0;
+const EMPTY_READS_BEFORE_CLEAR = 3;
+
 // Observadores externos do poller (ex.: botão Play/Pause) que também recebem cada
 // leitura do player e podem manter o poller vivo mesmo sem teclas de Now Playing.
 // Cada observador: { count: () => número de teclas ativas, onState: (state|null) => void }
@@ -74,6 +80,10 @@ export function add(context, actionType, settings = {}) {
   } else {
     return;
   }
+  // add() vem de onAdd/onSetActive: a página acabou de ficar visível e o Studio
+  // pode ter repintado a tecla com o ícone do manifest. Esquecemos o que foi
+  // enviado para que o redesenho abaixo realmente aconteça.
+  lastSentByContext.delete(context);
   lastTrackId = null; // força re-render (inclui a nova tecla) no próximo tick
   ensurePolling();
   // desenha imediatamente com o último estado conhecido, se houver
@@ -93,6 +103,7 @@ export function updateSettings(context, settings = {}) {
 /** Remove uma instância (tecla limpa). */
 export function remove(context) {
   instances.delete(context);
+  lastSentByContext.delete(context); // a tecla sumiu: nada foi enviado a ela
   if (activeConsumers() === 0) stopPolling();
 }
 
@@ -143,11 +154,15 @@ function stopPolling() {
   timer = null;
   lastTrackId = null;
   lastState = null;
+  // Sem poller o estado da tela deixa de ser confiável: força reenvio ao voltar.
+  lastSentByContext.clear();
 }
 
 async function tick() {
   if (activeConsumers() === 0) return;
   if (!tokenStore.isConnected()) {
+    // Idem: o token pode ficar momentaneamente indisponível durante um refresh.
+    if (++emptyReads < EMPTY_READS_BEFORE_CLEAR) return;
     pushTextToAll('Conecte\no Spotify');
     notifyObservers(null);
     return;
@@ -162,6 +177,12 @@ async function tick() {
       // O próprio api bloqueia novas chamadas até o Retry-After expirar.
       return;
     }
+    // Falhas transitórias (404 "sem dispositivo ativo", erro de rede) acontecem
+    // durante a reprodução normal. Limpar a tela na primeira delas é o que fazia
+    // a capa sumir e o ícone de curtir voltar ao padrão, então aqui vale o mesmo
+    // filtro das leituras vazias: só reagimos quando a falha se confirma.
+    if (++emptyReads < EMPTY_READS_BEFORE_CLEAR) return;
+
     if (e instanceof NoActiveDeviceError) {
       // Sem dispositivo ativo: mostra o ícone padrão da ação.
       pushDefaultIconToAll();
@@ -173,17 +194,25 @@ async function tick() {
     return;
   }
 
-  // Notifica observadores (ex.: Play/Pause) a cada leitura — o estado de
-  // reprodução pode mudar sem a faixa mudar (pausar a mesma música).
-  notifyObservers(state);
-
   if (!state) {
-    // Nada tocando: mostra o ícone padrão da ação.
+    // O /me/player devolve estado vazio por 1-2 s de forma intermitente, mesmo
+    // com a música tocando (confirmado no log: "para NULL" e, 1,7 s depois, de
+    // volta à MESMA faixa). Tratar isso como "parou" apagava a capa e resetava o
+    // ícone de curtir. Só aceitamos a parada quando ela se confirma em leituras
+    // seguidas; até lá mantemos a tela como está.
+    if (++emptyReads < EMPTY_READS_BEFORE_CLEAR) return;
+
+    notifyObservers(null);
     pushDefaultIconToAll();
     lastTrackId = null;
     lastState = null;
     return;
   }
+  emptyReads = 0;
+
+  // Notifica observadores (ex.: Play/Pause) a cada leitura — o estado de
+  // reprodução pode mudar sem a faixa mudar (pausar a mesma música).
+  notifyObservers(state);
 
   lastState = state;
   // Só re-renderiza imagens quando a faixa muda (evita reprocessar a capa toda hora).
@@ -205,6 +234,11 @@ function notifyObservers(state) {
   }
 }
 
+// Última imagem enviada por tecla — reenviar o mesmo base64 não muda nada na
+// tela, mas o Studio leva um tempo visível para redecodificar (no mosaico são
+// ~140 KB de uma vez) e as teclas ficam vazias durante a repintura.
+const lastSentByContext = new Map();
+
 async function renderInstance(context, inst, state) {
   if (!state.coverUrl) {
     setText(context, `${state.title}`);
@@ -212,9 +246,16 @@ async function renderInstance(context, inst, state) {
   }
   if (inst.type === 'single') {
     const b64 = await cover.renderSingle(state.coverUrl);
-    $UD.setBaseDataIcon(context, b64, truncate(`${state.title}`));
+    const text = truncate(`${state.title}`);
+    const sig = `s:${state.coverUrl}|${text}`;
+    if (lastSentByContext.get(context) === sig) return; // nada mudou nesta tecla
+    lastSentByContext.set(context, sig);
+    $UD.setBaseDataIcon(context, b64, text);
   } else {
     const b64 = await cover.renderQuadrant(state.coverUrl, inst.quadrant);
+    const sig = `m:${state.coverUrl}|${inst.quadrant}`;
+    if (lastSentByContext.get(context) === sig) return; // nada mudou nesta tecla
+    lastSentByContext.set(context, sig);
     // Sem texto no mosaico, para não poluir a imagem reconstruída.
     $UD.setBaseDataIcon(context, b64, '');
   }
@@ -225,6 +266,9 @@ function pushTextToAll(text) {
 }
 
 function setText(context, text) {
+  // Substitui a imagem por texto: idem pushDefaultIconToAll, precisa invalidar a
+  // assinatura para o próximo render da capa não ser barrado pelo guard.
+  lastSentByContext.delete(context);
   // Placeholder textual: usamos setBaseDataIcon com um PNG 1x1 transparente + texto,
   // mas o SDK também aceita showtext via textData. Aqui apenas mostramos o texto.
   $UD.setBaseDataIcon(context, TRANSPARENT_PNG_B64, text);
@@ -233,7 +277,13 @@ function setText(context, text) {
 // Restaura o ícone padrão da ação (State 0 do manifest): nota musical no single,
 // quadrados no mosaico. Usado quando não há capa para mostrar.
 function pushDefaultIconToAll() {
-  for (const context of instances.keys()) $UD.setStateIcon(context, 0);
+  for (const context of instances.keys()) {
+    // A tecla deixa de mostrar a capa: esquecer o que foi enviado é obrigatório,
+    // senão o guard de "imagem igual" impediria o redesenho quando a faixa voltar
+    // e a tecla ficaria vazia para sempre.
+    lastSentByContext.delete(context);
+    $UD.setStateIcon(context, 0);
+  }
 }
 
 function truncate(s, n = 40) {
