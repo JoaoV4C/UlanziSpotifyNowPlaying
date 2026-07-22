@@ -9,8 +9,39 @@
 // a cada tick do poller.
 
 import sharp from 'sharp';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const KEY_SIZE = 126; // px por tecla (tamanho renderizado no display do Deck)
+
+// Raiz do plugin, para resolver os assets locais (ícones do manifest).
+const PLUGIN_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+
+// Ícones locais já convertidos (assetPath relativo -> base64 PNG).
+const localIconCache = new Map();
+
+/**
+ * Lê um ícone PNG local do plugin (ex.: 'assets/icons/spotifyLogo.png') e devolve
+ * base64 sem prefixo, dimensionado à tecla. Usado como imagem de fundo nos estados
+ * sem capa: enviar o ícone por setBaseDataIcon é confiável, enquanto setStateIcon
+ * pode deixar a tecla preta depois que ela já exibiu uma capa base64.
+ * @param {string} assetPath caminho relativo à raiz do plugin
+ * @returns {Promise<string>} base64 do PNG
+ */
+export async function renderLocalIcon(assetPath) {
+  const cached = localIconCache.get(assetPath);
+  if (cached) return cached;
+
+  const abs = path.join(PLUGIN_ROOT, assetPath);
+  const buf = await sharp(fs.readFileSync(abs))
+    .resize(KEY_SIZE, KEY_SIZE, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
+    .png()
+    .toBuffer();
+  const b64 = buf.toString('base64');
+  localIconCache.set(assetPath, b64);
+  return b64;
+}
 
 // Caches separados por finalidade, cada um: coverUrl -> { single, quadrants }.
 // Separar evita que o churn de capas do "now playing" (muda a cada música)

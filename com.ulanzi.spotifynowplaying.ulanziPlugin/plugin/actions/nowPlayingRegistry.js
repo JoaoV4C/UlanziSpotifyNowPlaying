@@ -13,6 +13,15 @@ const POLL_MS = 2000;
 const NOW_PLAYING = 'com.ulanzi.ulanzistudio.spotifynowplaying.nowPlaying';
 const MOSAIC = 'com.ulanzi.ulanzistudio.spotifynowplaying.mosaic';
 
+// Ícone padrão de cada tipo (mesma imagem do State 0 do manifest). Sempre que a
+// tecla não tem capa para mostrar, exibimos este ícone como base64 — nunca um
+// fundo transparente, e sem depender do setStateIcon (que pode pintar a tecla de
+// preto depois que ela já exibiu uma capa base64).
+const DEFAULT_ICON = {
+  single: 'assets/icons/spotifyLogo.png',
+  mosaic: 'assets/icons/mosaic.png',
+};
+
 let $UD = null;
 
 // context -> { type: 'single'|'mosaic', quadrant?: number }
@@ -265,31 +274,37 @@ function pushTextToAll(text) {
   for (const context of instances.keys()) setText(context, text);
 }
 
+// Mostra o ícone padrão da tecla com um texto por cima (ou sem texto). Substitui
+// o antigo placeholder transparente: a tecla nunca fica "vazia".
 function setText(context, text) {
-  // Substitui a imagem por texto: idem pushDefaultIconToAll, precisa invalidar a
-  // assinatura para o próximo render da capa não ser barrado pelo guard.
-  lastSentByContext.delete(context);
-  // Placeholder textual: usamos setBaseDataIcon com um PNG 1x1 transparente + texto,
-  // mas o SDK também aceita showtext via textData. Aqui apenas mostramos o texto.
-  $UD.setBaseDataIcon(context, TRANSPARENT_PNG_B64, text);
+  setDefaultIcon(context, text).catch(() => {});
 }
 
-// Restaura o ícone padrão da ação (State 0 do manifest): nota musical no single,
-// quadrados no mosaico. Usado quando não há capa para mostrar.
+async function setDefaultIcon(context, text = '') {
+  const inst = instances.get(context);
+  const asset = DEFAULT_ICON[inst?.type] || DEFAULT_ICON.single;
+  const sig = `def:${asset}|${text}`;
+  // O mesmo guard das capas: estados sem faixa se repetem a cada tick e reenviar
+  // o mesmo ícone faria a tecla repiscar durante a repintura do Studio.
+  if (lastSentByContext.get(context) === sig) return;
+  try {
+    const b64 = await cover.renderLocalIcon(asset);
+    lastSentByContext.set(context, sig);
+    $UD.setBaseDataIcon(context, b64, text);
+  } catch {
+    // Asset ilegível (não deveria ocorrer): recorre ao State 0 do manifest.
+    lastSentByContext.delete(context);
+    $UD.setStateIcon(context, 0, text);
+  }
+}
+
+// Restaura o ícone padrão da ação em todas as teclas. Usado quando nada toca.
 function pushDefaultIconToAll() {
   for (const context of instances.keys()) {
-    // A tecla deixa de mostrar a capa: esquecer o que foi enviado é obrigatório,
-    // senão o guard de "imagem igual" impediria o redesenho quando a faixa voltar
-    // e a tecla ficaria vazia para sempre.
-    lastSentByContext.delete(context);
-    $UD.setStateIcon(context, 0);
+    setDefaultIcon(context).catch(() => {});
   }
 }
 
 function truncate(s, n = 40) {
   return s && s.length > n ? s.slice(0, n - 1) + '…' : s || '';
 }
-
-// PNG 1x1 transparente (base64) — fundo neutro quando só há texto para mostrar.
-const TRANSPARENT_PNG_B64 =
-  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
