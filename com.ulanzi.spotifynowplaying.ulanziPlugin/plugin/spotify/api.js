@@ -148,7 +148,16 @@ async function request(path, opts = {}, retry = true, allowActivate = true) {
   }
 
   if (resp.status === 401 && retry) {
-    await refreshAccessToken();
+    // O Spotify devolve 401 esporádicos e transitórios sob polling, mesmo com um
+    // token válido (comprovado: o MESMO token respondia 200 antes e depois do
+    // 401, e funciona no curl). Só renovamos se o token de fato estiver vencendo;
+    // caso contrário é um 401 falso — apenas repetimos a requisição.
+    //
+    // Antes renovávamos a cada 401, o que gerava refreshes em cascata (7 em 3 min)
+    // e, no retry, esbarrava em OUTRO 401 transitório — o "Access token missing".
+    if (!tokenStore.hasValidAccessToken()) {
+      await refreshAccessToken();
+    }
     return request(path, opts, false, allowActivate);
   }
   if (resp.status === 404) {
