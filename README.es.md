@@ -149,7 +149,7 @@ npm test
 - **El control de reproducción requiere un dispositivo activo.** Si Spotify está abierto en este
   PC pero inactivo, el plugin activa el dispositivo automáticamente al enviar un comando. Si
   Spotify no está abierto en este PC, aparece un aviso («Abre Spotify en este ordenador»).
-- El poller de «Now Playing» se ejecuta cada **2 s** y es **compartido**: todas las acciones de
+- El poller de «Now Playing» se ejecuta cada **5 s** y es **compartido**: todas las acciones de
   estado (aleatorio, repetir, silenciar, me gusta) se actualizan a partir de él, sin peticiones
   propias. La carátula se almacena en caché por URL.
 - **Límite de peticiones (429).** El plugin respeta `Retry-After` y bloquea **todas** las

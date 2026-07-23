@@ -145,7 +145,7 @@ npm test
 - **Controle de playback exige um dispositivo ativo.** Se o Spotify estiver aberto neste PC mas
   parado, o plugin ativa o dispositivo automaticamente ao dar um comando. Se não houver Spotify
   aberto neste PC, aparece um aviso ("Abra o Spotify neste computador").
-- O poller de "Now Playing" roda a cada **2 s** e é **compartilhado**: todas as ações de estado
+- O poller de "Now Playing" roda a cada **5 s** e é **compartilhado**: todas as ações de estado
   (aleatório, repetir, mudo, curtir) se atualizam a partir dele, sem requisições próprias. A capa
   é cacheada por URL.
 - **Rate limit (429).** O plugin respeita o `Retry-After` e bloqueia **toda** requisição até o
