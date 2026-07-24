@@ -147,7 +147,7 @@ npm test
 - **Playback control requires an active device.** If Spotify is open on this PC but idle, the
   plugin activates the device automatically when you issue a command. If Spotify isn't open on
   this PC, a warning appears ("Open Spotify on this computer").
-- The "Now Playing" poller runs every **2 s** and is **shared**: every state action (shuffle,
+- The "Now Playing" poller runs every **5 s** and is **shared**: every state action (shuffle,
   repeat, mute, like) updates from it, with no requests of their own. Cover art is cached by URL.
 - **Rate limit (429).** The plugin respects `Retry-After` and blocks **every** request until the
   deadline passes — insisting makes Spotify *extend* the penalty. The cooldown is written to

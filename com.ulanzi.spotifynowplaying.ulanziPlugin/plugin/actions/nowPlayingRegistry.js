@@ -8,7 +8,12 @@ import { NoActiveDeviceError, RateLimitError } from '../spotify/api.js';
 import * as cover from '../render/cover.js';
 import * as tokenStore from '../spotify/tokenStore.js';
 
-const POLL_MS = 2000;
+// Intervalo do poller. A 2 s eram ~43 mil requisições/dia com o Studio aberto,
+// o que esgotava a cota diária do Spotify: o 429 chegava de madrugada com um
+// Retry-After que só expirava no reset da cota (sempre 14:45 UTC), deixando o
+// plugin bloqueado o resto da manhã. A 5 s caem para ~17 mil/dia.
+// As ações do próprio Deck não ficam mais lentas: next/prev chamam refreshSoon().
+const POLL_MS = 5000;
 
 const NOW_PLAYING = 'com.ulanzi.ulanzistudio.spotifynowplaying.nowPlaying';
 const MOSAIC = 'com.ulanzi.ulanzistudio.spotifynowplaying.mosaic';
